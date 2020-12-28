@@ -195,6 +195,7 @@ static void saPrintSettings(void)
     LOG_D(VTX, "BootIntoPitMode: %s", saDevice.willBootIntoPitMode ? "yes" : "no");
 }
 
+/*
 int saDacToPowerIndex(int dac)
 {
     for (int idx = saPowerCount - 1 ; idx >= 0 ; idx--) {
@@ -204,6 +205,7 @@ int saDacToPowerIndex(int dac)
     }
     return 0;
 }
+*/
 
 int saDbiToMw(uint16_t dbi) {
 
@@ -793,7 +795,7 @@ vtxDevType_e vtxSAGetDeviceType(const vtxDevice_t *vtxDevice)
 
 static bool vtxSAIsReady(const vtxDevice_t *vtxDevice)
 {
-    return vtxDevice != NULL && !(saDevice.power == 0);
+    return vtxDevice != NULL && (saDevice.power >= 0 );
     //wait until power reading exists
 }
 
@@ -911,7 +913,7 @@ static bool vtxSAGetPowerIndex(const vtxDevice_t *vtxDevice, uint8_t *pIndex)
         return false;
     }
 
-    *pIndex = ((saDevice.version == SA_1_0) ? saDacToPowerIndex(saDevice.power) : saDevice.power);
+    *pIndex = saDevice.power;
     return true;
 }
 
