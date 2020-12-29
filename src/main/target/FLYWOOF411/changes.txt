@@ -1,0 +1,12 @@
+Changes:
+- "Current" pin moved to "RSSI" pin
+- SoftSerial1 RX enabled on "Current" board pin
+- Disabled support for PPM on UART RX2
+- Softserial2 enabled on LED pin (RX/TX on same pin)
+
+Connections: 
+UART1: RX,TX -> GPS
+UART2: RX -> SBUS
+SoftSerial1: UART2 TX2/Current -> TX/RX for Mavlink 
+SoftSerial2: LED/LED -> SmartAudio 
+RSSI - curent sensor (if any)

@@ -97,14 +97,18 @@
 #define UART1_RX_PIN            PB7
 
 #define USE_UART2
-#define UART2_TX_PIN            NONE    //PA2
+#define UART2_TX_PIN            NONE //PA2
 #define UART2_RX_PIN            PA3
 
 #define USE_SOFTSERIAL1
-#define SOFTSERIAL_1_TX_PIN     PA2     // Clash with TX2, possible to use as S.Port or VTX control
-#define SOFTSERIAL_1_RX_PIN     PA2
+#define SOFTSERIAL_1_TX_PIN     PA2 //Board: TX2 pin
+#define SOFTSERIAL_1_RX_PIN     PA1 //Board: Current pin
 
-#define SERIAL_PORT_COUNT       4       // VCP, USART1, USART2, SS1
+#define USE_SOFTSERIAL2
+#define SOFTSERIAL_2_TX_PIN     PA15 //Board: LED pin
+#define SOFTSERIAL_2_RX_PIN     PA15 //Board: LED pin
+
+#define SERIAL_PORT_COUNT       5       // VCP, USART1, USART2, SS1, SS2
 
 #define DEFAULT_RX_TYPE         RX_TYPE_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -113,17 +117,17 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1
-#define ADC_CHANNEL_1_PIN               PA1
+//#define ADC_CHANNEL_1_PIN               PA1
 #define ADC_CHANNEL_2_PIN               PA0
 #define ADC_CHANNEL_3_PIN               PB1
 
-#define CURRENT_METER_ADC_CHANNEL       ADC_CHN_1
+#define CURRENT_METER_ADC_CHANNEL       ADC_CHN_3 //ADC_CHN_1  //Board: RSSI pin
 #define VBAT_ADC_CHANNEL                ADC_CHN_2
-#define RSSI_ADC_CHANNEL                ADC_CHN_3
+//#define RSSI_ADC_CHANNEL                ADC_CHN_3
 
 // *************** LED2812 ************************
-#define USE_LED_STRIP
-#define WS2811_PIN                      PA15
+//#define USE_LED_STRIP
+//#define WS2811_PIN                      PA15
 
 // ***************  OTHERS *************************
 #define DEFAULT_FEATURES                (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_VBAT | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
