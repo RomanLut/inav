@@ -117,17 +117,22 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1
-//#define ADC_CHANNEL_1_PIN               PA1
-#define ADC_CHANNEL_2_PIN               PA0
-#define ADC_CHANNEL_3_PIN               PB1
+//#define ADC_CHANNEL_1_PIN               PA1   //Board current pin
+#define ADC_CHANNEL_2_PIN               PA0  
+//#define ADC_CHANNEL_3_PIN               PB1  //Board RSSI pin
 
-#define CURRENT_METER_ADC_CHANNEL       ADC_CHN_3 //ADC_CHN_1  //Board: RSSI pin
+//#define CURRENT_METER_ADC_CHANNEL       ADC_CHN_3 //ADC_CHN_1  //Board: RSSI pin
 #define VBAT_ADC_CHANNEL                ADC_CHN_2
 //#define RSSI_ADC_CHANNEL                ADC_CHN_3
 
 // *************** LED2812 ************************
 //#define USE_LED_STRIP
 //#define WS2811_PIN                      PA15
+
+// *************** PINIO ***************************
+#define USE_PINIO
+#define USE_PINIOBOX
+#define PINIO1_PIN                  PB1  //Board RSSI pin
 
 // ***************  OTHERS *************************
 #define DEFAULT_FEATURES                (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_VBAT | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
