@@ -41,8 +41,11 @@ const timerHardware_t timerHardware[] = {
 //    DEF_TIM(TIM5, CH4, PA3,  TIM_USE_PPM,   0, 1), // PPM on RX2  Timer: 2,4 or 5,4 or 9,2   
 //    DEF_TIM(TIM3, CH4, PB1,  TIM_USE_ANY,   0, 0), //Board RSSI PIN,  Timer: 1,3 or 3,4
 
-    pinioBoxConfigMutable()->permanentId[0] = BOX_PERMANENT_ID_USER1;
-
 };
 
 const int timerHardwareCount = sizeof(timerHardware) / sizeof(timerHardware[0]);
+
+void targetConfiguration(void)
+{
+    pinioBoxConfigMutable()->permanentId[0] = BOX_PERMANENT_ID_USER1;
+}
