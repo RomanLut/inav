@@ -876,7 +876,7 @@ static void osdFormatThrottlePosition(char *buff, bool autoThr, textAttributes_t
     if (autoThr && navigationIsControllingThrottle()) {
         buff[0] = SYM_AUTO_THR0;
         buff[1] = SYM_AUTO_THR1;
-        thr = (constrain(rcCommand[THROTTLE], PWM_RANGE_MIN, PWM_RANGE_MAX) - PWM_RANGE_MIN) * 100 / (PWM_RANGE_MAX - PWM_RANGE_MIN);
+        //thr = (constrain(rcCommand[THROTTLE], PWM_RANGE_MIN, PWM_RANGE_MAX) - PWM_RANGE_MIN) * 100 / (PWM_RANGE_MAX - PWM_RANGE_MIN);
         if (isFixedWingAutoThrottleManuallyIncreased())
             TEXT_ATTRIBUTES_ADD_BLINK(*elemAttr);
     }
