@@ -10,4 +10,5 @@
 Makefile text
 *.bat eol=crlf
 *.txt text
-*.sh text
+*.sh text eol=lf
+*.rb text eol=lf

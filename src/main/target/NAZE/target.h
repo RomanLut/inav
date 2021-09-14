@@ -70,6 +70,7 @@
 #else
     // Afroflight NAZE
     #define USE_HARDWARE_REVISION_DETECTION
+
     #define USE_SOFTSERIAL2
 
     #define M25P16_CS_GPIO          NAZE_SPI_CS_GPIO
@@ -84,26 +85,26 @@
 
 #define GYRO
 #define USE_GYRO_MPU6050
-#define USE_GYRO_MPU6500
+//#define USE_GYRO_MPU6500
 
 #define GYRO_MPU6050_ALIGN      CW0_DEG
 #define GYRO_MPU6500_ALIGN      CW0_DEG
 
 #define ACC
 #define USE_ACC_MPU6050
-#define USE_ACC_MPU6500
+//#define USE_ACC_MPU6500
 
 #define ACC_MPU6050_ALIGN       CW0_DEG
 #define ACC_MPU6500_ALIGN       CW0_DEG
 
 #define BARO
-#define USE_BARO_MS5611 // needed for Flip32 board
+//#define USE_BARO_MS5611 // needed for Flip32 board
 #define USE_BARO_BMP280
 
-#define MAG
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define MAG_HMC5883_ALIGN       CW180_DEG
+//#define MAG
+//#define USE_MAG_HMC5883
+//#define USE_MAG_QMC5883
+//#define MAG_HMC5883_ALIGN       CW180_DEG
 
 // #define USE_RANGEFINDER
 // #define USE_RANGEFINDER_HCSR04
@@ -113,8 +114,8 @@
 // #define RANGEFINDER_HCSR04_TRIGGER_PIN_PWM   PB8
 // #define RANGEFINDER_HCSR04_ECHO_PIN_PWM      PB9
 
-#define SOFTSERIAL_1_RX_PIN     PA6
-#define SOFTSERIAL_1_TX_PIN     PA7
+#define SOFTSERIAL_1_RX_PIN     PA1
+#define SOFTSERIAL_1_TX_PIN     PA6
 #define SOFTSERIAL_2_RX_PIN     PB0
 #define SOFTSERIAL_2_TX_PIN     PB1
 
