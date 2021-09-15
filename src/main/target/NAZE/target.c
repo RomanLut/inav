@@ -22,13 +22,14 @@
 #include "drivers/pwm_mapping.h"
 #include "drivers/timer.h"
 
+/*
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
-    { TIM2, IO_TAG(PA0),  TIM_Channel_1, 0, IOCFG_IPD,  TIM_USE_PPM | TIM_USE_PWM},         // PWM1 - RC1
+//    { TIM2, IO_TAG(PA0),  TIM_Channel_1, 0, IOCFG_IPD,  TIM_USE_PPM | TIM_USE_PWM},         // PWM1 - RC1
     { TIM2, IO_TAG(PA1),  TIM_Channel_2, 0, IOCFG_IPD,  TIM_USE_PWM },                      // PWM2 - RC2
-    { TIM2, IO_TAG(PA2),  TIM_Channel_3, 0, IOCFG_IPD,  TIM_USE_PWM },                      // PWM3 - RC3
-    { TIM2, IO_TAG(PA3),  TIM_Channel_4, 0, IOCFG_IPD,  TIM_USE_PWM },                      // PWM4 - RC4
+//    { TIM2, IO_TAG(PA2),  TIM_Channel_3, 0, IOCFG_IPD,  TIM_USE_PWM },                      // PWM3 - RC3
+//    { TIM2, IO_TAG(PA3),  TIM_Channel_4, 0, IOCFG_IPD,  TIM_USE_PWM },                      // PWM4 - RC4
     { TIM3, IO_TAG(PA6),  TIM_Channel_1, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW },   // PWM5 - RC5
-    { TIM3, IO_TAG(PA7),  TIM_Channel_2, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW },   // PWM6 - RC6
+//    { TIM3, IO_TAG(PA7),  TIM_Channel_2, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW },   // PWM6 - RC6
     { TIM3, IO_TAG(PB0),  TIM_Channel_3, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW },   // PWM7 - RC7
     { TIM3, IO_TAG(PB1),  TIM_Channel_4, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW },   // PWM8 - RC8
 
@@ -39,4 +40,20 @@ const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     { TIM4, IO_TAG(PB8),  TIM_Channel_3, 0, IOCFG_IPD,  TIM_USE_MC_MOTOR |                    TIM_USE_FW_SERVO }, // PWM13 - OUT5
     { TIM4, IO_TAG(PB9),  TIM_Channel_4, 0, IOCFG_IPD,  TIM_USE_MC_MOTOR |                    TIM_USE_FW_SERVO }  // PWM14 - OUT6
 };
+*/
 
+
+const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+    { TIM2, IO_TAG(PA1),  TIM_Channel_2, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW }, 
+    { TIM2, IO_TAG(PA2),  TIM_Channel_3, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW }, 
+//    { TIM3, IO_TAG(PA6),  TIM_Channel_1, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW }, 
+    { TIM3, IO_TAG(PB0),  TIM_Channel_3, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW }, 
+    { TIM3, IO_TAG(PB1),  TIM_Channel_4, 0, IOCFG_IPD,  TIM_USE_PWM | TIM_USE_MC_CHNFW }, 
+
+    { TIM1, IO_TAG(PA8),  TIM_Channel_1, 1, IOCFG_IPD,  TIM_USE_MC_MOTOR | TIM_USE_MC_SERVO | TIM_USE_FW_MOTOR }, // PWM9 - OUT1
+    { TIM1, IO_TAG(PA11), TIM_Channel_4, 1, IOCFG_IPD,  TIM_USE_MC_MOTOR | TIM_USE_MC_SERVO | TIM_USE_FW_MOTOR }, // PWM10 - OUT2
+    { TIM4, IO_TAG(PB6),  TIM_Channel_1, 0, IOCFG_IPD,  TIM_USE_MC_MOTOR |                    TIM_USE_FW_SERVO }, // PWM11 - OUT3
+    { TIM4, IO_TAG(PB7),  TIM_Channel_2, 0, IOCFG_IPD,  TIM_USE_MC_MOTOR |                    TIM_USE_FW_SERVO }, // PWM12 - OUT4
+    { TIM4, IO_TAG(PB8),  TIM_Channel_3, 0, IOCFG_IPD,  TIM_USE_MC_MOTOR |                    TIM_USE_FW_SERVO }, // PWM13 - OUT5
+    { TIM4, IO_TAG(PB9),  TIM_Channel_4, 0, IOCFG_IPD,  TIM_USE_MC_MOTOR |                    TIM_USE_FW_SERVO }  // PWM14 - OUT6
+};

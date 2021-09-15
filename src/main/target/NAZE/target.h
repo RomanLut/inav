@@ -115,7 +115,7 @@
 // #define RANGEFINDER_HCSR04_ECHO_PIN_PWM      PB9
 
 #define SOFTSERIAL_1_RX_PIN     PA1
-#define SOFTSERIAL_1_TX_PIN     PA6
+#define SOFTSERIAL_1_TX_PIN     PA2
 #define SOFTSERIAL_2_RX_PIN     PB0
 #define SOFTSERIAL_2_TX_PIN     PB1
 
@@ -169,18 +169,20 @@
 #define USE_ADC
 #define ADC_CHANNEL_1_PIN               PB1
 #define ADC_CHANNEL_2_PIN               PA4
-#define ADC_CHANNEL_3_PIN               PA1
+//#define ADC_CHANNEL_3_PIN               PA1
 #define CURRENT_METER_ADC_CHANNEL       ADC_CHN_1
 #define VBAT_ADC_CHANNEL                ADC_CHN_2
-#define RSSI_ADC_CHANNEL                ADC_CHN_3
+//#define RSSI_ADC_CHANNEL                ADC_CHN_3
 
 //#define NAV_AUTO_MAG_DECLINATION
-//#define NAV_GPS_GLITCH_DETECTION
 
 // #define LED_STRIP
 // #define WS2811_PIN                      PA6
 // #define WS2811_DMA_TC_FLAG              DMA1_FLAG_TC6
 // #define WS2811_DMA_HANDLER_IDENTIFER    DMA1_CH6_HANDLER
+
+#undef USE_RX_PWM
+#undef USE_RX_PPM
 
 #undef USE_SERIALRX_SPEKTRUM
 #undef USE_SERIALRX_IBUS
@@ -191,8 +193,10 @@
 
 #define TARGET_MOTOR_COUNT      6
 
-#define DEFAULT_FEATURES        FEATURE_VBAT
-#define DEFAULT_RX_FEATURE      FEATURE_RX_PPM
+#define DEFAULT_FEATURES        FEATURE_VBAT | FEATURE_SOFTSERIAL
+#define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
+#define SERIALRX_PROVIDER       SERIALRX_SBUS
+#define SERIALRX_UART           SERIAL_PORT_USART2
 
 // Number of available PWM outputs
 #define MAX_PWM_OUTPUT_PORTS    10
@@ -204,3 +208,16 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 14
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) )
+
+#define USE_SERIAL_PASSTHROUGH
+#define AUTOTUNE_FIXED_WING
+#define FIXED_WING_LANDING
+
+#define TELEMETRY_MAVLINK
+#define TELEMETRY_SMARTPORT
+//#define TELEMETRY_CRSF   have to add cpp
+
+#undef BLACKBOX
+
+#define NAV_GPS_GLITCH_DETECTION
+//#define NAV_NON_VOLATILE_WAYPOINT_STORAGE  RAM overflow
