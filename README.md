@@ -1,3 +1,11 @@
+#My Changes in this branch:
+
+- changed naze32 target to by board, flying wing
+- fixed mavlink rssi report
+- fixed mavlink flight mode report
+- "failsafe_mission" always enabled
+
+
 # INAV
 
 ![INAV](http://static.rcgroups.net/forums/attachments/6/1/0/3/7/6/a9088858-102-inav.png)
