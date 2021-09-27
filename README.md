@@ -1,6 +1,6 @@
 #My Changes in this branch:
 
-- changed naze32 target to by board, flying wing
+- changed naze32 target for my NAZE32 brushed board, for flying wing
 - fixed mavlink rssi report
 - fixed mavlink flight mode report
 - "failsafe_mission" always enabled
