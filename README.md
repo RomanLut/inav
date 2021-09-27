@@ -4,6 +4,7 @@
 - fixed mavlink rssi report
 - fixed mavlink flight mode report
 - "failsafe_mission" always enabled
+- created Docker files with new compiler
 
 
 # INAV
