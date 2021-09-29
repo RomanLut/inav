@@ -17,13 +17,8 @@
 
 #pragma once
 
-#ifdef FLYWOOF411_V2
-#define TARGET_BOARD_IDENTIFIER "FW42"
-#define USBD_PRODUCT_STRING     "FLYWOOF411V2"
-#else
 #define TARGET_BOARD_IDENTIFIER "FW41"
 #define USBD_PRODUCT_STRING     "FLYWOOF411"
-#endif
 
 #define LED0                    PC13
 
@@ -57,11 +52,7 @@
 #define IMU_ICM20689_ALIGN      CW180_DEG
 
 #define USE_EXTI
-#ifdef FLYWOOF411_V2
-#define GYRO_INT_EXTI           PB5
-#else
 #define GYRO_INT_EXTI           PB3
-#endif
 #define USE_MPU_DATA_READY_SIGNAL
 
 // *************** Baro *****************************
@@ -76,8 +67,6 @@
 #define USE_BARO_BMP280
 #define USE_BARO_MS5611
 
-#define BNO055_I2C_BUS          BUS_I2C1
-
 #define USE_MAG
 #define MAG_I2C_BUS             BUS_I2C1
 #define USE_MAG_HMC5883
@@ -88,6 +77,7 @@
 #define USE_MAG_LIS3MDL
 
 // *************** SPI OSD *****************************
+#define USE_OSD
 #define USE_MAX7456
 #define MAX7456_SPI_BUS         BUS_SPI2
 #define MAX7456_CS_PIN          PB12
@@ -103,63 +93,47 @@
 #define USE_VCP
 
 #define USE_UART1
-#ifdef FLYWOOF411_V2
-#define UART1_TX_PIN            PA9
-#define UART1_RX_PIN            PA10
-#else
 #define UART1_TX_PIN            PB6
 #define UART1_RX_PIN            PB7
-#endif
 
 #define USE_UART2
-#ifdef FLYWOOF411_V2
-#define UART2_TX_PIN            PA2
-#else
-#define UART2_TX_PIN            NONE    //PA2
-#endif
+#define UART2_TX_PIN            NONE //PA2
 #define UART2_RX_PIN            PA3
 
 #define USE_SOFTSERIAL1
-#ifdef FLYWOOF411_V2
-#define SOFTSERIAL_1_TX_PIN     PB6     // Clash with TX2, possible to use as S.Port or VTX control
-#define SOFTSERIAL_1_RX_PIN     PB7
-#else
-#define SOFTSERIAL_1_TX_PIN     PA2     // Clash with TX2, possible to use as S.Port or VTX control
-#define SOFTSERIAL_1_RX_PIN     PA2
-#endif
+#define SOFTSERIAL_1_TX_PIN     PA2 //Board: TX2 pin
+#define SOFTSERIAL_1_RX_PIN     PA1 //Board: Current pin
 
-#define SERIAL_PORT_COUNT       4       // VCP, USART1, USART2, SS1
+#define USE_SOFTSERIAL2
+#define SOFTSERIAL_2_TX_PIN     PA15 //Board: LED pin
+#define SOFTSERIAL_2_RX_PIN     PA15 //Board: LED pin
+
+#define SERIAL_PORT_COUNT       5       // VCP, USART1, USART2, SS1, SS2
 
 #define DEFAULT_RX_TYPE         RX_TYPE_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
-#ifdef FLYWOOF411_V2
-#define SERIALRX_UART           SERIAL_PORT_USART1
-#else
 #define SERIALRX_UART           SERIAL_PORT_USART2
-#endif
+
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1
-#define ADC_CHANNEL_1_PIN               PA1
-#ifdef FLYWOOF411_V2
-#define ADC_CHANNEL_2_PIN               PB1
-#define ADC_CHANNEL_3_PIN               PB0
-#else
-#define ADC_CHANNEL_2_PIN               PA0
-#define ADC_CHANNEL_3_PIN               PB1
-#endif
+//#define ADC_CHANNEL_1_PIN               PA1   //Board current pin
+#define ADC_CHANNEL_2_PIN               PA0  
+#define ADC_CHANNEL_3_PIN               PB1  //Board RSSI pin
 
-#define CURRENT_METER_ADC_CHANNEL       ADC_CHN_1
-#define VBAT_ADC_CHANNEL                ADC_CHN_2
-#define RSSI_ADC_CHANNEL                ADC_CHN_3
+//#define CURRENT_METER_ADC_CHANNEL       ADC_CHN_3 //ADC_CHN_1  //Board: RSSI pin
+#define VBAT_ADC_CHANNEL                ADC_CHN_3
+//#define RSSI_ADC_CHANNEL                ADC_CHN_3
 
 // *************** LED2812 ************************
-#define USE_LED_STRIP
-#ifdef FLYWOOF411_V2
-#define WS2811_PIN                      PA0
-#else
-#define WS2811_PIN                      PA15
-#endif
+//#define USE_LED_STRIP
+//#define WS2811_PIN                      PA15
+
+// *************** PINIO ***************************
+//#define USE_PINIO
+//#define USE_PINIOBOX
+//#define PINIO1_PIN                  PB1  //Board RSSI pin
+
 // ***************  OTHERS *************************
 #define DEFAULT_FEATURES                (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_VBAT | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
 
@@ -173,8 +147,4 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD        (BIT(2))
 
-#ifdef FLYWOOF411_V2
-#define MAX_PWM_OUTPUT_PORTS       6
-#else
 #define MAX_PWM_OUTPUT_PORTS       4
-#endif

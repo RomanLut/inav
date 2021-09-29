@@ -1,0 +1,13 @@
+Changes:
+- SoftSerial1 RX enabled on "Current" board pin
+- Disabled support for PPM on UART RX2
+- Softserial2 enabled on LED pin (RX/TX on same pin)
+- RSSI Pin used for VBAT pin (range s 0...3.3, se additional voltage divider!). It is used when FC is powerred from Boost DC-DC converter.
+
+
+Connections: 
+UART1: Booard Pin RX1, Board Pin TX1 -> GPS
+UART2: Board Pin RX2 -> SBUS
+SoftSerial1: Board Pin TX2/Board Pin Current -> TX/RX for Mavlink 
+SoftSerial2: Board Pin LED/LED -> SmartAudio 
+VBat sensor: Board Pin RSSI 
