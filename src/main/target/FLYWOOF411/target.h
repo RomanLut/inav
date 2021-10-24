@@ -130,9 +130,9 @@
 //#define WS2811_PIN                      PA15
 
 // *************** PINIO ***************************
-//#define USE_PINIO
-//#define USE_PINIOBOX
-//#define PINIO1_PIN                  PB1  //Board RSSI pin
+#define USE_PINIO
+#define USE_PINIOBOX
+#define PINIO1_PIN                  PA10  //Board Servo3 pin
 
 // ***************  OTHERS *************************
 #define DEFAULT_FEATURES                (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_VBAT | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
