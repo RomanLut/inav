@@ -1726,6 +1726,19 @@ static void printServo(uint8_t dumpMask, const servoParam_t *servoParam, const s
     }
 }
 
+static void cliOutput(char *cmdline)
+{
+    // print out servo output
+    cliPrintHashLine("servo");
+    const char *format = "servo %u %d";
+    for (uint32_t i = 0; i < MAX_SUPPORTED_SERVOS; i++) {
+        cliPrintLinef(format,
+            i,
+            getServoValue(i)
+        );
+    }
+}
+
 static void cliServo(char *cmdline)
 {
     enum { SERVO_ARGUMENT_COUNT = 5 };
@@ -3921,6 +3934,7 @@ const clicmd_t cmdTable[] = {
 #ifdef USE_USB_MSC
     CLI_COMMAND_DEF("msc", "switch into msc mode", NULL, cliMsc),
 #endif
+    CLI_COMMAND_DEF("output", "output information", NULL, cliOutput),
 #ifdef PLAY_SOUND
     CLI_COMMAND_DEF("play_sound", NULL, "[<index>]\r\n", cliPlaySound),
 #endif
