@@ -94,6 +94,7 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT + 1] = {
     { BOXAUTOLEVEL, "AUTO LEVEL", 54 },
     { BOXPLANWPMISSION, "WP PLANNER", 55 },
     { BOXSOARING, "SOARING", 56 },
+    { BOXGPSOFF, "GPS OFF", 57 },
     { CHECKBOX_ITEM_COUNT, NULL, 0xFF }
 };
 
@@ -315,6 +316,8 @@ void initActiveBoxIds(void)
     ADD_ACTIVE_BOX(BOXUSER2);
 #endif
 
+   ADD_ACTIVE_BOX(BOXGPSOFF);
+
 #if defined(USE_OSD) && defined(OSD_LAYOUT_COUNT)
 #if OSD_LAYOUT_COUNT > 0
     ADD_ACTIVE_BOX(BOXOSDALT1);
@@ -399,6 +402,7 @@ void packBoxModeFlags(boxBitmask_t * mspBoxModeFlags)
     CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXAUTOLEVEL)),       BOXAUTOLEVEL);
     CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXPLANWPMISSION)),   BOXPLANWPMISSION);
     CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXSOARING)),         BOXSOARING);
+    CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGPSOFF)),          BOXGPSOFF);
 
     memset(mspBoxModeFlags, 0, sizeof(boxBitmask_t));
     for (uint32_t i = 0; i < activeBoxIdCount; i++) {

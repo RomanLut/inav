@@ -45,20 +45,28 @@
 #include "fc/runtime_config.h"
 #endif
 
+#include "fc/rc_modes.h"
+
 #include "sensors/sensors.h"
 #include "sensors/compass.h"
+#include "sensors/barometer.h"
 
 #include "io/serial.h"
 #include "io/gps.h"
 #include "io/gps_private.h"
 
 #include "navigation/navigation.h"
+#include "navigation/navigation_private.h"
 
 #include "config/feature.h"
 
 #include "fc/config.h"
 #include "fc/runtime_config.h"
 #include "fc/settings.h"
+
+#include "flight/imu.h"
+#include "flight/wind_estimator.h"
+#include "flight/pid.h"
 
 typedef struct {
     bool                isDriverBased;
@@ -155,6 +163,118 @@ void gpsSetProtocolTimeout(timeMs_t timeoutMs)
     gpsState.timeoutMs = timeoutMs;
 }
 
+
+/*
+//V in cm/sec
+//pitch in decidegrees
+uint16_t VbyPitch(uint16_t v, int16_t pitch) {
+	if (pitch > 200) pitch = 200;
+	if (pitch < -200) pitch = -200;
+	pitch *= 11;
+	return v > pitch ? v + pitch : 0;
+}
+
+//throttle  0..100
+uint16_t VbyThrottle(uint16_t throttle) {
+	if (!ARMING_FLAG(ARMED)) return 0;
+	if (baro.BaroAlt < 500) return 0;
+	if (throttle < 20) throttle = 20;
+	return (uint32_t)(throttle - 20) * 102 * 28 / 80 + 63 * 28;
+}
+*/
+
+bool canEstimateGPSFix(void)
+{
+	return positionEstimationConfig()->allow_gps_fix_estimation && STATE(AIRPLANE) && sensors(SENSOR_GPS) && sensors(SENSOR_BARO) && sensors(SENSOR_MAG) && ARMING_FLAG(WAS_EVER_ARMED);
+}
+
+void updateEstimatedGPSFix(void) {
+
+	static uint32_t lastUpdateMs = 0;
+	static uint32_t estimated_lat = 0;
+	static uint32_t estimated_lon = 0;
+
+	uint32_t t = millis();
+	uint32_t dt = t - lastUpdateMs;
+	lastUpdateMs = t;
+
+	if (IS_RC_MODE_ACTIVE(BOXGPSOFF))
+	{
+		gpsSol.fixType = GPS_NO_FIX;
+		gpsSol.hdop = 9999;
+		gpsSol.numSat = 0;
+		DISABLE_STATE(GPS_FIX);
+	}
+
+	if (STATE(GPS_FIX)) {
+		DISABLE_STATE(GPS_ESTIMATED_FIX);
+		lastUpdateMs = t;
+		estimated_lat = gpsSol.llh.lat;
+		estimated_lon = gpsSol.llh.lon;
+		return;
+	}
+
+	if (!canEstimateGPSFix()) return;
+	
+	ENABLE_STATE(GPS_ESTIMATED_FIX);
+
+	gpsSol.fixType = GPS_FIX_3D;
+	gpsSol.hdop = 99;
+	gpsSol.flags.hasNewData = true;
+	gpsSol.numSat = 99;
+
+	gpsSol.flags.validVelNE = 1;
+	gpsSol.flags.validVelD = 1;
+	gpsSol.flags.validEPE = 1;
+
+	float speed = pidProfile()->fixedWingReferenceAirspeed;
+
+	float speedV[XYZ_AXIS_COUNT]; 
+	speedV[X] = rMat[0][0] * speed;
+	speedV[Y] = -rMat[1][0] * speed;
+	speedV[Z] = -rMat[2][0] * speed;
+	// here speedV[] is estimated speed without wind influence, cm/sec in NEU frame
+
+	if (isEstimatedWindSpeedValid()) {
+		speedV[X] += getEstimatedWindSpeed(X);
+		speedV[Y] += getEstimatedWindSpeed(Y);
+		speedV[Z] += getEstimatedWindSpeed(Z);
+	}
+	// here speedV[] is estimated speed with wind influence
+
+	if (baro.BaroAlt < 500) 
+	{
+		//landed
+		speedV[X] = 0;
+		speedV[Y] = 0;
+		speedV[Z] = 0;
+	}
+
+	estimated_lat += speedV[X] * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000;
+	estimated_lon += speedV[Y] * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000;
+
+	gpsSol.llh.lat = estimated_lat;
+	gpsSol.llh.lon = estimated_lon;
+	gpsSol.llh.alt = posControl.gpsOrigin.alt + baro.BaroAlt;
+	
+	gpsSol.groundSpeed = (int16_t)fast_fsqrtf(speedV[X]* speedV[X] + speedV[Y]* speedV[Y]);
+
+	float groundCourse = atan2_approx(speedV[Y], speedV[X]); // atan2 returns [-M_PI, M_PI], with 0 indicating the vector points in the X direction
+	if (groundCourse < 0) {
+		groundCourse += 2 * M_PIf;
+	}
+	gpsSol.groundCourse = RADIANS_TO_DECIDEGREES(groundCourse);
+
+	gpsSol.velNED[X] = (int16_t)(speedV[X]);
+	gpsSol.velNED[Y] = (int16_t)(speedV[Y]);
+	gpsSol.velNED[Z] = (int16_t)(speedV[Z]);
+
+	gpsSol.eph = 100;
+	gpsSol.epv = 100;
+}
+
+
+
 void gpsProcessNewSolutionData(void)
 {
     // Set GPS fix flag only if we have 3D fix
@@ -171,6 +291,8 @@ void gpsProcessNewSolutionData(void)
 
     // Set sensor as ready and available
     sensorsSet(SENSOR_GPS);
+
+	updateEstimatedGPSFix();
 
     // Pass on GPS update to NAV and IMU
     onNewGPSData();
