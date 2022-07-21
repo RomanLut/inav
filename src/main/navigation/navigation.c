@@ -61,6 +61,8 @@
 #include "sensors/boardalignment.h"
 #include "sensors/battery.h"
 
+#include "common/log.h"
+
 #define WP_ALTITUDE_MARGIN_CM   100      // WP enforce altitude tolerance, used when WP altitude setting enforced when WP reached
 
 // Multirotors:
@@ -1137,6 +1139,7 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_INITIALIZE(navigati
         // Heading sensor, altitude sensor and HOME fix are mandatory for RTH. If not satisfied - switch to emergency landing
         // Relevant to failsafe forced RTH only. Switched RTH blocked in selectNavEventFromBoxModeInput if sensors unavailable.
         // If we are in dead-reckoning mode - also fail, since coordinates may be unreliable
+LOG_D(SYSTEM,"Emergency1");
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
 
@@ -1193,6 +1196,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_INITIALIZE(navigati
     }
     /* Position sensor failure timeout - land. Land immediately if failsafe RTH and timeout disabled (set to 0) */
     else if (checkForPositionSensorTimeout() || (!navConfig()->general.pos_failure_timeout && posControl.flags.forcedRTHActivated)) {
+LOG_D(SYSTEM,"Emergency6");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
     /* No valid POS sensor but still within valid timeout - wait */
@@ -1213,6 +1218,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_CLIMB_TO_SAFE_ALT(n
     /* Position sensor failure timeout and not configured to ignore GPS loss - land */
     if ((posControl.flags.estHeadingStatus == EST_NONE) ||
         (checkForPositionSensorTimeout() && !navConfig()->general.flags.rth_climb_ignore_emerg)) {
+LOG_D(SYSTEM,"Emergency7");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
 
@@ -1246,6 +1253,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_CLIMB_TO_SAFE_ALT(n
 
         /* For multi-rotors execute sanity check during initial ascent as well */
         if (!STATE(FIXED_WING_LEGACY) && !validateRTHSanityChecker()) {
+LOG_D(SYSTEM,"Emergency8");
+
             return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
         }
 
@@ -1282,6 +1291,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_HEAD_HOME(navigatio
 
     /* If position sensors unavailable - land immediately */
     if ((posControl.flags.estHeadingStatus == EST_NONE) || !validateRTHSanityChecker()) {
+LOG_D(SYSTEM,"Emergency9");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
 
@@ -1300,6 +1311,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_HEAD_HOME(navigatio
     }
     /* Position sensor failure timeout - land */
     else if (checkForPositionSensorTimeout()) {
+LOG_D(SYSTEM,"Emergency10");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
     /* No valid POS sensor but still within valid timeout - wait */
@@ -1317,6 +1330,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_HOVER_PRIOR_TO_LAND
 
     /* If position sensors unavailable - land immediately (wait for timeout on GPS) */
     if ((posControl.flags.estHeadingStatus == EST_NONE) || checkForPositionSensorTimeout() || !validateRTHSanityChecker()) {
+LOG_D(SYSTEM,"Emergency11");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
 
@@ -1339,6 +1354,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_HOVER_ABOVE_HOME(na
 
     /* If position sensors unavailable - land immediately (wait for timeout on GPS) */
     if (posControl.flags.estHeadingStatus == EST_NONE || checkForPositionSensorTimeout() || !validateRTHSanityChecker()) {
+LOG_D(SYSTEM,"Emergency12");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
 
@@ -1378,6 +1395,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_RTH_LANDING(navigationF
     /* If position sensors unavailable - land immediately (wait for timeout on GPS)
      * Continue to check for RTH sanity during landing */
     if (posControl.flags.estHeadingStatus == EST_NONE || checkForPositionSensorTimeout() || !validateRTHSanityChecker()) {
+LOG_D(SYSTEM,"Emergency13");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
 
@@ -1581,6 +1600,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_WAYPOINT_IN_PROGRESS(na
     }
     /* If position sensors unavailable - land immediately (wait for timeout on GPS) */
     else if (checkForPositionSensorTimeout() || (posControl.flags.estHeadingStatus == EST_NONE)) {
+LOG_D(SYSTEM,"Emergency14");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
 
@@ -1627,6 +1648,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_WAYPOINT_HOLD_TIME(navi
 
     /* If position sensors unavailable - land immediately (wait for timeout on GPS) */
     if (posControl.flags.estHeadingStatus == EST_NONE || checkForPositionSensorTimeout()) {
+LOG_D(SYSTEM,"Emergency15");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
 
@@ -1696,6 +1719,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_WAYPOINT_FINISHED(navig
 
     /* If position sensors unavailable - land immediately (wait for timeout on GPS) */
     if (posControl.flags.estHeadingStatus == EST_NONE || checkForPositionSensorTimeout()) {
+LOG_D(SYSTEM,"Emergency16");
+
         return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
     }
 
@@ -1706,6 +1731,8 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_EMERGENCY_LANDING_INITI
 {
     // TODO:
     UNUSED(previousState);
+
+LOG_D(SYSTEM,"Emergency2");
 
     // Emergency landing MAY use common altitude controller if vertical position is valid - initialize it
     // Make sure terrain following is not enabled
@@ -3342,6 +3369,8 @@ static navigationFSMEvent_t selectNavEventFromBoxModeInput(void)
 
         /* Emergency landing triggered by failsafe when Failsafe procedure set to Landing */
         if (posControl.flags.forcedEmergLandingActivated) {
+LOG_D(SYSTEM,"Emergency3");
+
             return NAV_FSM_EVENT_SWITCH_TO_EMERGENCY_LANDING;
         }
 
@@ -3960,6 +3989,8 @@ rthState_e getStateOfForcedRTH(void)
  *-----------------------------------------------------------*/
 void activateForcedEmergLanding(void)
 {
+LOG_D(SYSTEM,"Emergency4");
+
     abortFixedWingLaunch();
     posControl.flags.forcedEmergLandingActivated = true;
     navProcessFSMEvents(selectNavEventFromBoxModeInput());

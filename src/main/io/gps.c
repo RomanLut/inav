@@ -182,7 +182,7 @@ uint16_t VbyThrottle(uint16_t throttle) {
 
 bool canEstimateGPSFix(void)
 {
-	return positionEstimationConfig()->allow_gps_fix_estimation && STATE(AIRPLANE) && sensors(SENSOR_BARO) && sensors(SENSOR_MAG);  // &&sensors(SENSOR_GPS)
+	return positionEstimationConfig()->allow_gps_fix_estimation && STATE(AIRPLANE) && sensors(SENSOR_GPS) && sensors(SENSOR_BARO) && sensors(SENSOR_MAG) && ARMING_FLAG(WAS_EVER_ARMED);
 }
 
 void updateEstimatedGPSFix(void) {
@@ -216,9 +216,9 @@ void updateEstimatedGPSFix(void) {
 	ENABLE_STATE(GPS_ESTIMATED_FIX);
 
 	gpsSol.fixType = GPS_FIX_3D;
-	gpsSol.hdop = 100;
+	gpsSol.hdop = 99;
 	gpsSol.flags.hasNewData = true;
-	gpsSol.numSat = 0;
+	gpsSol.numSat = 99;
 
 	gpsSol.flags.validVelNE = 1;
 	gpsSol.flags.validVelD = 1;
