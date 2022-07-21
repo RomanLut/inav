@@ -242,9 +242,8 @@ void updateEstimatedGPSFix(void) {
 	}
 	// here speedV[] is estimated speed with wind influence
 
-	if (baro.BaroAlt < 500) 
+	if (STATE(LANDING_DETECTED))
 	{
-		//landed
 		speedV[X] = 0;
 		speedV[Y] = 0;
 		speedV[Z] = 0;
