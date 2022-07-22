@@ -271,7 +271,7 @@ void updateEstimatedGPSFix(void) {
 	}
 
 	estimated_lat += (int32_t)( velX * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000 );
-	estimated_lon += (int32_t)(velY * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000 * posControl.gpsOrigin.scale);
+	estimated_lon += (int32_t)(velY * dt / (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * posControl.gpsOrigin.scale) / 1000 );
 	estimated_alt = posControl.gpsOrigin.alt + baro.BaroAlt;
 
 	gpsSol.llh.lat = estimated_lat;
