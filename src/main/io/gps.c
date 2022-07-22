@@ -67,6 +67,7 @@
 #include "flight/imu.h"
 #include "flight/wind_estimator.h"
 #include "flight/pid.h"
+#include "flight/mixer.h"
 
 typedef struct {
     bool                isDriverBased;
@@ -185,18 +186,27 @@ uint16_t VbyThrottle(uint16_t throttle) {
 
 bool canEstimateGPSFix(void)
 {
-	return positionEstimationConfig()->allow_gps_fix_estimation && STATE(AIRPLANE) && sensors(SENSOR_GPS) && sensors(SENSOR_BARO) && sensors(SENSOR_MAG) && ARMING_FLAG(WAS_EVER_ARMED);
+	return positionEstimationConfig()->allow_gps_fix_estimation && STATE(AIRPLANE) && sensors(SENSOR_GPS) && sensors(SENSOR_BARO) && sensors(SENSOR_MAG) && ARMING_FLAG(WAS_EVER_ARMED) && STATE(GPS_FIX_HOME);
 }
 
 void updateEstimatedGPSFix(void) {
 
 	static uint32_t lastUpdateMs = 0;
-	static uint32_t estimated_lat = 0;
-	static uint32_t estimated_lon = 0;
+	static int32_t estimated_lat = 0;
+	static int32_t estimated_lon = 0;
+	static int32_t estimated_alt = 0;
+	static float estVelZ = 0;
 
 	uint32_t t = millis();
-	uint32_t dt = t - lastUpdateMs;
+	int32_t dt = t - lastUpdateMs;
 	lastUpdateMs = t;
+
+	int32_t velZ = dt > 0 ? (estimated_alt - (posControl.gpsOrigin.alt + baro.BaroAlt)) * 1000 / dt : 0;
+	estVelZ = estVelZ * 0.8f + velZ * 0.2f;
+
+	//debug[0] = gpsSol.velNED[X];
+	//debug[1] = gpsSol.velNED[Y];
+	//debug[2] = gpsSol.velNED[Z];
 
 	if (IS_RC_MODE_ACTIVE(BOXGPSOFF))
 	{
@@ -206,15 +216,13 @@ void updateEstimatedGPSFix(void) {
 		DISABLE_STATE(GPS_FIX);
 	}
 
-	if (STATE(GPS_FIX)) {
+	if (STATE(GPS_FIX) || !canEstimateGPSFix()) {
 		DISABLE_STATE(GPS_ESTIMATED_FIX);
-		lastUpdateMs = t;
 		estimated_lat = gpsSol.llh.lat;
 		estimated_lon = gpsSol.llh.lon;
+		estimated_alt = posControl.gpsOrigin.alt + baro.BaroAlt;
 		return;
 	}
-
-	if (!canEstimateGPSFix()) return;
 	
 	ENABLE_STATE(GPS_ESTIMATED_FIX);
 
@@ -229,44 +237,46 @@ void updateEstimatedGPSFix(void) {
 
 	float speed = pidProfile()->fixedWingReferenceAirspeed;
 
-	float speedV[XYZ_AXIS_COUNT]; 
-	speedV[X] = rMat[0][0] * speed;
-	speedV[Y] = -rMat[1][0] * speed;
-	speedV[Z] = -rMat[2][0] * speed;
-	// here speedV[] is estimated speed without wind influence, cm/sec in NEU frame
+	float velX = rMat[0][0] * speed;
+	float velY = -rMat[1][0] * speed;
+	// here (velX, velY) is estimated horizontal speed without wind influence = airspeed, cm/sec in NEU frame
 
 	if (isEstimatedWindSpeedValid()) {
-		speedV[X] += getEstimatedWindSpeed(X);
-		speedV[Y] += getEstimatedWindSpeed(Y);
-		speedV[Z] += getEstimatedWindSpeed(Z);
+		velX += getEstimatedWindSpeed(X);
+		velY += getEstimatedWindSpeed(Y);
 	}
-	// here speedV[] is estimated speed with wind influence
+	// here (velX, velY) is estimated horizontal speed with wind influence = ground speed
 
-	if (STATE(LANDING_DETECTED))
+	if (STATE(LANDING_DETECTED) || ((posControl.navState == NAV_STATE_RTH_LANDING) && (getThrottlePercent() == 0)))
 	{
-		speedV[X] = 0;
-		speedV[Y] = 0;
-		speedV[Z] = 0;
+		velX = 0;
+		velY = 0;
+		estVelZ = 0;
 	}
 
-	estimated_lat += speedV[X] * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000;
-	estimated_lon += speedV[Y] * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000;
+	estimated_lat += velX * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000;
+	estimated_lon += velY * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000;
+	estimated_alt = posControl.gpsOrigin.alt + baro.BaroAlt;
 
 	gpsSol.llh.lat = estimated_lat;
 	gpsSol.llh.lon = estimated_lon;
-	gpsSol.llh.alt = posControl.gpsOrigin.alt + baro.BaroAlt;
+	gpsSol.llh.alt = estimated_alt;
 	
-	gpsSol.groundSpeed = (int16_t)fast_fsqrtf(speedV[X]* speedV[X] + speedV[Y]* speedV[Y]);
+	gpsSol.groundSpeed = (int16_t)fast_fsqrtf(velX * velX + velY * velY);
 
-	float groundCourse = atan2_approx(speedV[Y], speedV[X]); // atan2 returns [-M_PI, M_PI], with 0 indicating the vector points in the X direction
+	float groundCourse = atan2_approx(velY, velX); // atan2 returns [-M_PI, M_PI], with 0 indicating the vector points in the X direction
 	if (groundCourse < 0) {
 		groundCourse += 2 * M_PIf;
 	}
 	gpsSol.groundCourse = RADIANS_TO_DECIDEGREES(groundCourse);
 
-	gpsSol.velNED[X] = (int16_t)(speedV[X]);
-	gpsSol.velNED[Y] = (int16_t)(speedV[Y]);
-	gpsSol.velNED[Z] = (int16_t)(speedV[Z]);
+	gpsSol.velNED[X] = (int16_t)(velX);
+	gpsSol.velNED[Y] = (int16_t)(velY);
+	gpsSol.velNED[Z] = (int16_t)(estVelZ);
+
+	//debug[0] = gpsSol.velNED[X];
+	//debug[1] = gpsSol.velNED[Y];
+	//debug[2] = gpsSol.velNED[Z];
 
 	gpsSol.eph = 100;
 	gpsSol.epv = 100;
