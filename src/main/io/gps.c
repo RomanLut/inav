@@ -205,12 +205,28 @@ void updateEstimatedGPSFix(void) {
 	//debug[1] = gpsSol.velNED[Y];
 	//debug[2] = gpsSol.velNED[Z];
 
+	static int32_t last_lat = 0;
+	static int32_t last_lon = 0;
+	static int32_t last_alt = 0;
+
 	if (IS_RC_MODE_ACTIVE(BOXGPSOFF))
 	{
 		gpsSol.fixType = GPS_NO_FIX;
 		gpsSol.hdop = 9999;
 		gpsSol.numSat = 0;
+
+		gpsSol.llh.lat = last_lat;
+		gpsSol.llh.lon = last_lon;
+		gpsSol.llh.alt = last_alt;
+
 		DISABLE_STATE(GPS_FIX);
+	}
+	else
+	{
+		//freeze coordinates
+		last_lat = gpsSol.llh.lat;
+		last_lon = gpsSol.llh.lon;
+		last_alt = gpsSol.llh.alt;
 	}
 
 	if (STATE(GPS_FIX) || !canEstimateGPSFix()) {
@@ -251,8 +267,8 @@ void updateEstimatedGPSFix(void) {
 		estVelZ = 0;
 	}
 
-	estimated_lat += velX * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000;
-	estimated_lon += velY * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000;
+	estimated_lat += (int32_t)( velX * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000 );
+	estimated_lon += (int32_t)(velY * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000 * posControl.gpsOrigin.scale);
 	estimated_alt = posControl.gpsOrigin.alt + baro.BaroAlt;
 
 	gpsSol.llh.lat = estimated_lat;
