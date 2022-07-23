@@ -195,18 +195,34 @@ void updateEstimatedGPSFix(void) {
 	static int32_t estimated_lat = 0;
 	static int32_t estimated_lon = 0;
 	static int32_t estimated_alt = 0;
-	static float estVelZ = 0;
 
 	uint32_t t = millis();
 	int32_t dt = t - lastUpdateMs;
 	lastUpdateMs = t;
 
-	int32_t velZ = dt > 0 ? (estimated_alt - (posControl.gpsOrigin.alt + baro.BaroAlt)) * 1000 / dt : 0;
-	estVelZ = estVelZ * 0.8f + velZ * 0.2f;
+	//-----------------
+	/*
+	debug[0] = gpsSol.velNED[X];
+	debug[1] = gpsSol.velNED[Y];
+	debug[2] = gpsSol.velNED[Z];
 
-	//debug[0] = gpsSol.velNED[X];
-	//debug[1] = gpsSol.velNED[Y];
-	//debug[2] = gpsSol.velNED[Z];
+	float speed1 = pidProfile()->fixedWingReferenceAirspeed;
+
+	float velX1 = rMat[0][0] * speed1;
+	float velY1 = -rMat[1][0] * speed1;
+
+	debug[6] = velX1;
+	debug[7] = velY1;
+
+	if (isEstimatedWindSpeedValid()) {
+		velX1 += getEstimatedWindSpeed(X);
+		velY1 += getEstimatedWindSpeed(Y);
+	}
+
+	debug[3] = velX1;
+	debug[4] = velY1;
+	*/
+	//---------------------
 
 	static int32_t last_lat = 0;
 	static int32_t last_lon = 0;
@@ -218,6 +234,7 @@ void updateEstimatedGPSFix(void) {
 		gpsSol.hdop = 9999;
 		gpsSol.numSat = 0;
 
+		//freeze coordinates
 		gpsSol.llh.lat = last_lat;
 		gpsSol.llh.lon = last_lon;
 		gpsSol.llh.alt = last_alt;
@@ -226,11 +243,13 @@ void updateEstimatedGPSFix(void) {
 	}
 	else
 	{
-		//freeze coordinates
 		last_lat = gpsSol.llh.lat;
 		last_lon = gpsSol.llh.lon;
 		last_alt = gpsSol.llh.alt;
 	}
+
+//debug[0] = gpsSol.llh.lat;
+//debug[1] = gpsSol.llh.lon;
 
 	if (STATE(GPS_FIX) || !canEstimateGPSFix()) {
 		DISABLE_STATE(GPS_ESTIMATED_FIX);
@@ -247,8 +266,11 @@ void updateEstimatedGPSFix(void) {
 	gpsSol.flags.hasNewData = true;
 	gpsSol.numSat = 99;
 
+	gpsSol.eph = 100;
+	gpsSol.epv = 100;
+
 	gpsSol.flags.validVelNE = 1;
-	gpsSol.flags.validVelD = 1;
+	gpsSol.flags.validVelD = 0;  //do not provide velocity.z
 	gpsSol.flags.validEPE = 1;
 
 	float speed = pidProfile()->fixedWingReferenceAirspeed;
@@ -267,11 +289,10 @@ void updateEstimatedGPSFix(void) {
 	{
 		velX = 0;
 		velY = 0;
-		estVelZ = 0;
 	}
 
-	estimated_lat += (int32_t)( velX * dt / DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR / 1000 );
-	estimated_lon += (int32_t)(velY * dt / (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * posControl.gpsOrigin.scale) / 1000 );
+	estimated_lat += (int32_t)( velX * dt / (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * 1000 ) );
+	estimated_lon += (int32_t)( velY * dt / (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * 1000 * posControl.gpsOrigin.scale) );
 	estimated_alt = posControl.gpsOrigin.alt + baro.BaroAlt;
 
 	gpsSol.llh.lat = estimated_lat;
@@ -288,14 +309,14 @@ void updateEstimatedGPSFix(void) {
 
 	gpsSol.velNED[X] = (int16_t)(velX);
 	gpsSol.velNED[Y] = (int16_t)(velY);
-	gpsSol.velNED[Z] = (int16_t)(estVelZ);
+	gpsSol.velNED[Z] = 0;
 
 	//debug[0] = gpsSol.velNED[X];
 	//debug[1] = gpsSol.velNED[Y];
 	//debug[2] = gpsSol.velNED[Z];
 
-	gpsSol.eph = 100;
-	gpsSol.epv = 100;
+	//debug[0] = gpsSol.llh.lat;
+	//debug[1] = gpsSol.llh.lon;
 }
 
 
