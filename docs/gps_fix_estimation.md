@@ -14,6 +14,22 @@
 
 
 
+# Налаштування
+
+set inav_allow_gps_fix_estimation=ON
+
+set fw_reference_airspeed= cruise speed in cm/sec
+
+speed in cm/sec = speed in km/h * 27.77
+
+
+# Що включає ця модифікація ?
+
+- INAV 5.0 release
+- підтримку симулятора https://github.com/RomanLut/INAV-X-Plane-HITL
+- можливість навігаціі за умов тимчасової відсутності GPS
+
+
 # Навіщо це потрібно, Ardupilot давно так може?
 
 Так, і рекомендується використовувати пошивку Ardupilot, яка набагато більше розвинена. Але не всі польотні контролери підтримують Ardupilot. Ця прошивка рекомендуэться для літаків, які наразі використовують INAV.
