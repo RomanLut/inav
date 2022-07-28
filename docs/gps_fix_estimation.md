@@ -56,7 +56,7 @@
 
 # Відключення GPS з пульта керування
 
-![](doc/Screenshots/gps_off_box.png) 
+![](Screenshots/gps_off_box.png) 
 
 Ця можливість може використовуватись:
 - для тестування навігації без GPS
