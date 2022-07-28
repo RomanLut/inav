@@ -1,13 +1,3 @@
-set inav_allow_gps_fix_estimation=ON
-
-
-set fw_reference_airspeed= cruise speed in cm/sec
-
-
-speed in cm/sec = speed in km/h * 27.77
-
-
-
 # INAV - navigation capable flight controller
 
 ![INAV](http://static.rcgroups.net/forums/attachments/6/1/0/3/7/6/a9088858-102-inav.png)
