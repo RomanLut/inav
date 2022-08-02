@@ -63,8 +63,8 @@ static void virtualPitotCalculate(pitotDev_t *pitot, float *pressure, float *tem
 {
     UNUSED(pitot);
     float airSpeed = 0.0f;
-    if (pitotIsCalibrationComplete() && STATE(GPS_FIX)) {
-        if (isEstimatedWindSpeedValid()) {
+    if (pitotIsCalibrationComplete()) {
+        if (isEstimatedWindSpeedValid() && STATE(GPS_FIX)) {
             uint16_t windHeading; //centidegrees
             float windSpeed = getEstimatedHorizontalWindSpeed(&windHeading); //cm/s
             float horizontalWindSpeed = windSpeed * cos_approx(CENTIDEGREES_TO_RADIANS(windHeading - posControl.actualState.yaw)); //yaw int32_t centidegrees

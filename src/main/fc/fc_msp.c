@@ -3566,6 +3566,17 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 				else {
 					sbufAdvance(src, 2*3);
 				}
+
+				if (simulatorData.flags & SIMU_EXT_BATTERY_VOLTAGE) {
+                    simulatorData.vbat = sbufReadU8(src);
+                } else {
+                    simulatorData.vbat = (uint8_t)(SIMULATOR_FULL_BATTERY * 10.0f);
+                }
+
+                if (simulatorData.flags & SIMU_AIRSPEED) {
+                     simulatorData.airSpeed = sbufReadU16(src);   
+			    }
+
 			}
 			else {
 				DISABLE_STATE(GPS_FIX);
