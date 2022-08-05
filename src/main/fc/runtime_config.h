@@ -172,12 +172,16 @@ typedef enum {
 	SIMU_SIMULATE_BATTERY	= (1 << 1),
 	SIMU_MUTE_BEEPER		= (1 << 2),
 	SIMU_USE_SENSORS		= (1 << 3),
-	SIMU_HAS_NEW_GPS_DATA	= (1 << 4)
+	SIMU_HAS_NEW_GPS_DATA		= (1 << 4),
+	SIMU_EXT_BATTERY_VOLTAGE	= (1 << 5), //extend MSP_SIMULATOR format 2
+	SIMU_AIRSPEED           = (1 << 6) 
 } simulatorFlags_t;
 
 typedef struct {
 	simulatorFlags_t flags;
 	uint8_t debugIndex;
+	uint8_t vbat;  //126 ->12.6V
+	uint16_t airSpeed;  //cm/s
 } simulatorData_t;
 
 extern simulatorData_t simulatorData;

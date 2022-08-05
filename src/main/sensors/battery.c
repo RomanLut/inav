@@ -292,8 +292,8 @@ static void updateBatteryVoltage(timeUs_t timeDelta, bool justConnected)
     }
 
 	if (simulatorData.flags & SIMU_SIMULATE_BATTERY) {
-		vbat = 1260;
-		batteryFullVoltage = 1210;
+		vbat = ((uint16_t)simulatorData.vbat)*10;
+		batteryFullVoltage = 1260;
 		batteryWarningVoltage = 1020;
 		batteryCriticalVoltage = 960;
 	}
