@@ -15,9 +15,9 @@ Plane should have the following sensors:
 - magnethometer
 - pitot (optional)
 
-By befault, all navigation modes are disabled if GPS fix is lost. If RC signal is lost, plane will not be able to enable RTH. Plane will switch to LANDING instead. When flying above inreachable spaces, plane will be lost.
+By befault, all navigation modes are disabled when GPS fix is lost. If RC signal is lost also, plane will not be able to enable RTH. Plane will switch to LANDING instead. When flying above inreachable spaces, plane will be lost.
 
-GPS fix estimation allows to recover plane using magnethometer and baromenet only.
+GPS fix estimation allows to recover plane using magnetometer and baromener only.
 
 Note, that GPS fix estimation is not a solution for navigation without GPS. Without GPS fix, position error accumulates quickly. But it is acceptable for RTH.
 
@@ -32,7 +32,7 @@ To navigate without GPS fix, we make the following assumptions:
 - plane is flying in the direction where nose is pointing
 - plane is flying with constant speed, specified in settings
 
-It is posible to roughtly esptimate position using these assumption. To increase heading accuracy, plane will use infomration about wind direction and speed estimated before GPS fix lost. To increase speed estimation accuracy, plane will use pitot tube (if available).
+It is posible to roughtly estimate position using these assumptions. To increase heading accuracy, plane will use information about wind direction and speed, estimated before GPS fix was lost. To increase speed estimation accuracy, plane will use pitot tube (if available).
 
 From estimated heading direction and speed, plane is able to **roughtly** estimate it's position.
 
@@ -61,25 +61,25 @@ Example: 100 km/h = 100 * 27.77 = 2777 m/s
 
 *It is important, that plane fly with specified speed in CRUISE mode. If you have set option "Icrease cruise speed with throttle"  - do not use it without GPS Fix.*
 
-*If pitot is available, pitot sensor data will be uaed instead of constant*
+*If pitot is available, pitot sensor data will be used instead of constant.*
 
-*Note related command: to continue mission without RC signal, see command ```set failsafe_mission=OFF```*
+*Note related command: to continue mission without RC signal, see command ```set failsafe_mission=OFF```.*
 
-**After entering CLI command, make sure that settings are saved**
+**After entering CLI command, make sure that settings are saved:**
 
 ```save```
 
-# Disabling GPS from RC controller
+# Disabling GPS seosor from RC controller
 
 ![](Screenshots/gps_off_box.png) 
 
-For testing purpoces, it is now possible to disable GPS from RC controller:
+For testing purpoces, it is now possible to disable GPS sensor from RC controller:
 
-*GPS can be disabled only after 1) initial GPS fix is acquired 2) in ARMED mode*
+*GPS can be disabled only after 1) initial GPS fix is acquired 2) in ARMED mode.*
 
 # Is it possible to implement this for multirotor ?
 
-There are some ideas by there is no solution now. We can not make assumptions which we can make with a plane.
+There are some ideas, but there is no solution now. We can not make assumptions with multirotor which we can make with a fixed wing.
 
 
 # Links
