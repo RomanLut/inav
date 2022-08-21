@@ -69,7 +69,7 @@ Example: 100 km/h = 100 * 27.77 = 2777 m/s
 
 ```save```
 
-# Disabling GPS seosor from RC controller
+# Disabling GPS sensor from RC controller
 
 ![](Screenshots/gps_off_box.png) 
 
