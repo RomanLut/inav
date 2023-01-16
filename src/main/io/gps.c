@@ -279,7 +279,7 @@ void updateEstimatedGPSFix(void) {
 #ifdef USE_PITOT
 	if (sensors(SENSOR_PITOT) && pitotIsHealthy())
 	{
-		speed = getAirspeedEstimate();
+		speed = pitotCalculateAirSpeed();
 	}
 #endif
 
