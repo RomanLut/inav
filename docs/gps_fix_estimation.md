@@ -28,11 +28,17 @@
 
 # Завантаження
 
-**Версія: 1.1**
+### Версія: 1.1
 
 Прошивку можна завантажити тут https://github.com/RomanLut/inav/tree/5.0.0_gps_fix_estimation/firmware
 
 або самостійно зібрати з branch https://github.com/RomanLut/inav/tree/5.0.0_gps_fix_estimation
+
+
+### Історія змін
+
+* 1.0 Перша робоча версія
+* 1.1 Покращена точність навігації з трубкою піто
 
 # Як це працює ?
 
