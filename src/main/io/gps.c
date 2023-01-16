@@ -50,6 +50,7 @@
 #include "sensors/sensors.h"
 #include "sensors/compass.h"
 #include "sensors/barometer.h"
+#include "sensors/pitotmeter.h"
 
 #include "io/serial.h"
 #include "io/gps.h"
@@ -274,6 +275,13 @@ void updateEstimatedGPSFix(void) {
 	gpsSol.flags.validEPE = 1;
 
 	float speed = pidProfile()->fixedWingReferenceAirspeed;
+
+#ifdef USE_PITOT
+	if (sensors(SENSOR_PITOT) && pitotIsHealthy())
+	{
+		speed = getAirspeedEstimate();
+	}
+#endif
 
 	float velX = rMat[0][0] * speed;
 	float velY = -rMat[1][0] * speed;
