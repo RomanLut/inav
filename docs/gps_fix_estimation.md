@@ -109,7 +109,9 @@
 
 # Чи є подібне рішення для квадкоптерів ?
 
-Начасі нажаль немає.
+Начасі нажаль немає для inav. 
+
+Повернення без GPS для квадрокоптерів з'явилось в Ardupilot 4.3 https://ardupilot.org/copter/docs/deadreckoning-failsafe.html
 
 
 # Special thanks
