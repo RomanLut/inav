@@ -105,7 +105,7 @@
 #ifdef FLYWOOF411_V2
 #define UART2_TX_PIN            PA2
 #else
-#define UART2_TX_PIN            NONE    //PA2
+#define UART2_TX_PIN            PA2
 #endif
 #define UART2_RX_PIN            PA3
 
@@ -114,11 +114,15 @@
 #define SOFTSERIAL_1_TX_PIN     PB6     // Clash with TX2, possible to use as S.Port or VTX control
 #define SOFTSERIAL_1_RX_PIN     PB7
 #else
-#define SOFTSERIAL_1_TX_PIN     PA2     // Clash with TX2, possible to use as S.Port or VTX control
-#define SOFTSERIAL_1_RX_PIN     PA2
+#define SOFTSERIAL_1_TX_PIN     PB0  //PWM4     
+#define SOFTSERIAL_1_RX_PIN     PB1  //RSSI
 #endif
 
-#define SERIAL_PORT_COUNT       4       // VCP, USART1, USART2, SS1
+#define USE_SOFTSERIAL2
+#define SOFTSERIAL_2_TX_PIN     PA15  //LED
+#define SOFTSERIAL_2_RX_PIN     NONE
+
+#define SERIAL_PORT_COUNT       5       // VCP, USART1, USART2, SS1 ,SS2
 
 #define DEFAULT_RX_TYPE         RX_TYPE_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -130,26 +134,35 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1
-#define ADC_CHANNEL_1_PIN               PA1
+//#define ADC_CHANNEL_1_PIN               PA1
 #ifdef FLYWOOF411_V2
 #define ADC_CHANNEL_2_PIN               PB1
 #define ADC_CHANNEL_3_PIN               PB0
 #else
 #define ADC_CHANNEL_2_PIN               PA0
-#define ADC_CHANNEL_3_PIN               PB1
+//#define ADC_CHANNEL_3_PIN               PB1
 #endif
 
-#define CURRENT_METER_ADC_CHANNEL       ADC_CHN_1
+//#define CURRENT_METER_ADC_CHANNEL       ADC_CHN_1
 #define VBAT_ADC_CHANNEL                ADC_CHN_2
-#define RSSI_ADC_CHANNEL                ADC_CHN_3
+//#define RSSI_ADC_CHANNEL                ADC_CHN_3
 
 // *************** LED2812 ************************
+
+/*
 #define USE_LED_STRIP
 #ifdef FLYWOOF411_V2
 #define WS2811_PIN                      PA0
 #else
-#define WS2811_PIN                      PA15
+#define WS2811_PIN                      PA1
 #endif
+*/
+
+// *************** PINIO ***************************
+#define USE_PINIO
+#define USE_PINIOBOX
+#define PINIO1_PIN                  PA10  //S3
+
 // ***************  OTHERS *************************
 #define DEFAULT_FEATURES                (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_VBAT | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
 
@@ -165,5 +178,5 @@
 #ifdef FLYWOOF411_V2
 #define MAX_PWM_OUTPUT_PORTS       6
 #else
-#define MAX_PWM_OUTPUT_PORTS       4
+#define MAX_PWM_OUTPUT_PORTS       3
 #endif
