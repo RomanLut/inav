@@ -169,7 +169,7 @@ uint16_t VbyThrottle(uint16_t throttle) {
 
 bool canEstimateGPSFix(void)
 {
-	return positionEstimationConfig()->allow_gps_fix_estimation && STATE(AIRPLANE) && sensors(SENSOR_GPS) && sensors(SENSOR_BARO) && sensors(SENSOR_MAG) && ARMING_FLAG(WAS_EVER_ARMED) && STATE(GPS_FIX_HOME);
+	return positionEstimationConfig()->allow_gps_fix_estimation && STATE(AIRPLANE) && sensors(SENSOR_GPS) && sensors(SENSOR_BARO) && sensors(SENSOR_MAG) && compassIsHealthy() && ARMING_FLAG(WAS_EVER_ARMED) && STATE(GPS_FIX_HOME);
 }
 
 void updateEstimatedGPSFix(void) {
