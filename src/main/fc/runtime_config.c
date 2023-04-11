@@ -36,7 +36,7 @@ const char *armingDisableFlagNames[]= {
     "FS", "ANGLE", "CAL", "OVRLD", "NAV", "COMPASS",
     "ACC", "ARMSW", "HWFAIL", "BOXFS", "KILLSW", "RX",
     "THR", "CLI", "CMS", "OSD", "ROLL/PITCH", "AUTOTRIM", "OOM",
-    "SETTINGFAIL", "PWMOUT", "NOPREARM", "DSHOTBEEPER"
+    "SETTINGFAIL", "PWMOUT", "NOPREARM", "DSHOTBEEPER", "LANDED"
 };
 #endif
 
@@ -177,4 +177,9 @@ flightModeForTelemetry_e getFlightModeForTelemetry(void)
     return STATE(AIRMODE_ACTIVE) ? FLM_ACRO_AIR : FLM_ACRO;
 }
 
-simulatorData_t simulatorData = { flags: 0, debugIndex: 0, vbat:0, airSpeed:0 };
+#ifdef USE_SIMULATOR
+simulatorData_t simulatorData = {
+	flags: 0,
+	debugIndex: 0
+};
+#endif

@@ -167,8 +167,10 @@ displayPort_t *cmsDisplayPortGetCurrent(void)
 //   30 cols x 13 rows
 // HoTT Telemetry Screen
 //   21 cols x 8 rows
-// HD
+// HDZERO
 //   50 cols x 18 rows
+// DJIWTF
+//   60 cols x 22 rows
 //
 
 #define NORMAL_SCREEN_MIN_COLS 18      // Less is a small screen
@@ -873,6 +875,7 @@ long cmsMenuExit(displayPort_t *pDisplay, const void *ptr)
     setServoOutputEnabled(true);
 
     if ((exitType == CMS_EXIT_SAVEREBOOT) || (exitType == CMS_POPUP_SAVEREBOOT)) {
+        processDelayedSave();
         displayClearScreen(pDisplay);
         displayWrite(pDisplay, 5, 3, "REBOOTING...");
 

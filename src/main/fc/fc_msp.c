@@ -21,7 +21,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "common/log.h"
+#include "common/log.h" //for MSP_SIMULATOR
 #include "platform.h"
 
 #include "blackbox/blackbox.h"
@@ -73,11 +73,9 @@
 
 #include "flight/failsafe.h"
 #include "flight/imu.h"
-#include "flight/hil.h"
 #include "flight/mixer.h"
 #include "flight/pid.h"
 #include "flight/servos.h"
-#include "flight/secondary_imu.h"
 
 #include "config/config_eeprom.h"
 #include "config/feature.h"
@@ -100,8 +98,8 @@
 #include "msp/msp_serial.h"
 
 #include "navigation/navigation.h"
-#include "navigation/navigation_private.h"
-#include "navigation/navigation_pos_estimator_private.h"
+#include "navigation/navigation_private.h" //for MSP_SIMULATOR
+#include "navigation/navigation_pos_estimator_private.h" //for MSP_SIMULATOR
 
 #include "rx/rx.h"
 #include "rx/msp.h"
@@ -120,6 +118,7 @@
 #include "sensors/gyro.h"
 #include "sensors/opflow.h"
 #include "sensors/temperature.h"
+#include "sensors/esc_sensor.h"
 
 #include "telemetry/telemetry.h"
 
@@ -167,7 +166,6 @@ typedef enum {
 typedef enum {
     MSP_PASSTHROUGH_SERIAL_ID = 0xFD,
     MSP_PASSTHROUGH_SERIAL_FUNCTION_ID = 0xFE,
-
     MSP_PASSTHROUGH_ESC_4WAY = 0xFF,
  } mspPassthroughType_e;
 
@@ -402,15 +400,6 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
         sbufWriteData(dst, shortGitRevision, GIT_SHORT_REVISION_LENGTH);
         break;
 
-#ifdef HIL
-    case MSP_HIL_STATE:
-        sbufWriteU16(dst, hilToSIM.pidCommand[ROLL]);
-        sbufWriteU16(dst, hilToSIM.pidCommand[PITCH]);
-        sbufWriteU16(dst, hilToSIM.pidCommand[YAW]);
-        sbufWriteU16(dst, hilToSIM.pidCommand[THROTTLE]);
-        break;
-#endif
-
     case MSP_SENSOR_STATUS:
         sbufWriteU8(dst, isHardwareHealthy() ? 1 : 0);
         sbufWriteU8(dst, getHwGyroStatus());
@@ -421,11 +410,6 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
         sbufWriteU8(dst, getHwRangefinderStatus());
         sbufWriteU8(dst, getHwPitotmeterStatus());
         sbufWriteU8(dst, getHwOpticalFlowStatus());
-#ifdef USE_SECONDARY_IMU
-        sbufWriteU8(dst, getHwSecondaryImuStatus());
-#else
-        sbufWriteU8(dst, 0);
-#endif
         break;
 
     case MSP_ACTIVEBOXES:
@@ -1011,15 +995,9 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
         sbufWriteU8(dst, 0); // for compatibility with betaflight (rcInterpolation)
         sbufWriteU8(dst, 0); // for compatibility with betaflight (rcInterpolationInterval)
         sbufWriteU16(dst, 0); // for compatibility with betaflight (airModeActivateThreshold)
-#ifdef USE_RX_SPI
-        sbufWriteU8(dst, rxConfig()->rx_spi_protocol);
-        sbufWriteU32(dst, rxConfig()->rx_spi_id);
-        sbufWriteU8(dst, rxConfig()->rx_spi_rf_channel_count);
-#else
         sbufWriteU8(dst, 0);
         sbufWriteU32(dst, 0);
         sbufWriteU8(dst, 0);
-#endif
         sbufWriteU8(dst, 0); // for compatibility with betaflight (fpvCamAngleDegrees)
         sbufWriteU8(dst, rxConfig()->receiverType);
         break;
@@ -1075,9 +1053,30 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
     case MSP_LED_STRIP_CONFIG:
         for (int i = 0; i < LED_MAX_STRIP_LENGTH; i++) {
             const ledConfig_t *ledConfig = &ledStripConfig()->ledConfigs[i];
-            sbufWriteU32(dst, *ledConfig);
+
+            uint32_t legacyLedConfig = ledConfig->led_position;
+            int shiftCount = 8;
+            legacyLedConfig |= ledConfig->led_function << shiftCount;
+            shiftCount += 4;
+            legacyLedConfig |= (ledConfig->led_overlay & 0x3F) << (shiftCount);
+            shiftCount += 6; 
+            legacyLedConfig |= (ledConfig->led_color) << (shiftCount);
+            shiftCount += 4;
+            legacyLedConfig |= (ledConfig->led_direction) << (shiftCount);
+            shiftCount += 6;
+            legacyLedConfig |= (ledConfig->led_params) << (shiftCount);
+
+            sbufWriteU32(dst, legacyLedConfig);
         }
         break;
+
+    case MSP2_INAV_LED_STRIP_CONFIG_EX:
+        for (int i = 0; i < LED_MAX_STRIP_LENGTH; i++) {
+            const ledConfig_t *ledConfig = &ledStripConfig()->ledConfigs[i];
+            sbufWriteDataSafe(dst, ledConfig, sizeof(ledConfig_t));
+        }
+        break;
+
 
     case MSP_LED_STRIP_MODECOLOR:
         for (int i = 0; i < LED_MODE_COUNT; i++) {
@@ -1125,6 +1124,25 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
     case MSP_SDCARD_SUMMARY:
         serializeSDCardSummaryReply(dst);
         break;
+
+#if defined (USE_DJI_HD_OSD) || defined (USE_MSP_DISPLAYPORT)
+    case MSP_BATTERY_STATE:
+        // Battery characteristics
+        sbufWriteU8(dst, constrain(getBatteryCellCount(), 0, 255));
+        sbufWriteU16(dst, currentBatteryProfile->capacity.value);
+
+        // Battery state
+        sbufWriteU8(dst, constrain(getBatteryVoltage() / 10, 0, 255)); // in 0.1V steps
+        sbufWriteU16(dst, constrain(getMAhDrawn(), 0, 0xFFFF));
+        sbufWriteU16(dst, constrain(getAmperage(), -0x8000, 0x7FFF));
+
+        // Battery alerts - used values match Betaflight's/DJI's
+        sbufWriteU8(dst,  getBatteryState());
+
+        // Additional battery voltage field (in 0.01V steps)
+        sbufWriteU16(dst, getBatteryVoltage());
+        break;
+#endif
 
     case MSP_OSD_CONFIG:
 #ifdef USE_OSD
@@ -1422,7 +1440,7 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
 
     case MSP_NAME:
         {
-            const char *name = systemConfig()->name;
+            const char *name = systemConfig()->craftName;
             while (*name) {
                 sbufWriteU8(dst, *name++);
             }
@@ -1436,7 +1454,7 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
 
     case MSP2_INAV_AIR_SPEED:
 #ifdef USE_PITOT
-        sbufWriteU32(dst, pitot.airSpeed);
+        sbufWriteU32(dst, getAirspeedEstimate());
 #else
         sbufWriteU32(dst, 0);
 #endif
@@ -1534,12 +1552,26 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
         break;
 #endif
 
+#ifdef USE_ESC_SENSOR
+    case MSP2_INAV_ESC_RPM:
+        {
+            uint8_t motorCount = getMotorCount();
+
+            for (uint8_t i = 0; i < motorCount; i++){
+                const escSensorData_t *escState = getEscTelemetry(i); //Get ESC telemetry
+                sbufWriteU32(dst, escState->rpm);
+            }
+        }
+        break;
+#endif
+
     default:
         return false;
     }
     return true;
 }
 
+#ifdef USE_SAFE_HOME
 static mspResult_e mspFcSafeHomeOutCommand(sbuf_t *dst, sbuf_t *src)
 {
     const uint8_t safe_home_no = sbufReadU8(src);    // get the home number
@@ -1553,6 +1585,8 @@ static mspResult_e mspFcSafeHomeOutCommand(sbuf_t *dst, sbuf_t *src)
          return MSP_RESULT_ERROR;
     }
 }
+#endif
+
 
 static mspResult_e mspFcLogicConditionCommand(sbuf_t *dst, sbuf_t *src) {
     const uint8_t idx = sbufReadU8(src);
@@ -2473,19 +2507,19 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
 #ifdef USE_GPS
     case MSP_SET_RAW_GPS:
         if (dataSize == 14) {
-            gpsSol.fixType = sbufReadU8(src);
-            if (gpsSol.fixType) {
+	    gpsSol.fixType = sbufReadU8(src);
+	    if (gpsSol.fixType) {
                 ENABLE_STATE(GPS_FIX);
             } else {
                 DISABLE_STATE(GPS_FIX);
             }
-            gpsSol.flags.validVelNE = 0;
-            gpsSol.flags.validVelD = 0;
-            gpsSol.flags.validEPE = 0;
+            gpsSol.flags.validVelNE = false;
+            gpsSol.flags.validVelD = false;
+            gpsSol.flags.validEPE = false;
             gpsSol.numSat = sbufReadU8(src);
             gpsSol.llh.lat = sbufReadU32(src);
             gpsSol.llh.lon = sbufReadU32(src);
-            gpsSol.llh.alt = sbufReadU16(src);
+            gpsSol.llh.alt = 100 * sbufReadU16(src); // require cm
             gpsSol.groundSpeed = sbufReadU16(src);
             gpsSol.velNED[X] = 0;
             gpsSol.velNED[Y] = 0;
@@ -2599,15 +2633,9 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
             sbufReadU8(src); // for compatibility with betaflight (rcInterpolation)
             sbufReadU8(src); // for compatibility with betaflight (rcInterpolationInterval)
             sbufReadU16(src); // for compatibility with betaflight (airModeActivateThreshold)
-#ifdef USE_RX_SPI
-            rxConfigMutable()->rx_spi_protocol = sbufReadU8(src);
-            rxConfigMutable()->rx_spi_id = sbufReadU32(src);
-            rxConfigMutable()->rx_spi_rf_channel_count = sbufReadU8(src);
-#else
             sbufReadU8(src);
             sbufReadU32(src);
             sbufReadU8(src);
-#endif
             sbufReadU8(src); // for compatibility with betaflight (fpvCamAngleDegrees)
             rxConfigMutable()->receiverType = sbufReadU8(src);              // Won't be modified if buffer is not large enough
         } else
@@ -2694,13 +2722,35 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
         break;
 
     case MSP_SET_LED_STRIP_CONFIG:
-        if (dataSize == 5) {
+        if (dataSize == (1 + sizeof(uint32_t))) {
             tmp_u8 = sbufReadU8(src);
-            if (tmp_u8 >= LED_MAX_STRIP_LENGTH || dataSize != (1 + 4)) {
+            if (tmp_u8 >= LED_MAX_STRIP_LENGTH) {
                 return MSP_RESULT_ERROR;
             }
             ledConfig_t *ledConfig = &ledStripConfigMutable()->ledConfigs[tmp_u8];
-            *ledConfig = sbufReadU32(src);
+
+            uint32_t legacyConfig = sbufReadU32(src);
+
+            ledConfig->led_position = legacyConfig & 0xFF;
+            ledConfig->led_function = (legacyConfig >> 8) & 0xF;
+            ledConfig->led_overlay = (legacyConfig >> 12) & 0x3F;
+            ledConfig->led_color = (legacyConfig >> 18) & 0xF; 
+            ledConfig->led_direction = (legacyConfig >> 22) & 0x3F;
+            ledConfig->led_params = (legacyConfig >> 28) & 0xF;
+
+            reevaluateLedConfig();
+        } else
+            return MSP_RESULT_ERROR;
+        break;
+
+    case MSP2_INAV_SET_LED_STRIP_CONFIG_EX:
+        if (dataSize == (1 + sizeof(ledConfig_t))) {
+            tmp_u8 = sbufReadU8(src);
+            if (tmp_u8 >= LED_MAX_STRIP_LENGTH) {
+                return MSP_RESULT_ERROR;
+            }
+            ledConfig_t *ledConfig = &ledStripConfigMutable()->ledConfigs[tmp_u8];
+            sbufReadDataSafe(src, ledConfig, sizeof(ledConfig_t));
             reevaluateLedConfig();
         } else
             return MSP_RESULT_ERROR;
@@ -2760,7 +2810,7 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
 
     case MSP_SET_NAME:
         if (dataSize <= MAX_NAME_LENGTH) {
-            char *name = systemConfigMutable()->name;
+            char *name = systemConfigMutable()->craftName;
             int len = MIN(MAX_NAME_LENGTH, (int)dataSize);
             sbufReadData(src, name, len);
             memset(&name[len], '\0', (MAX_NAME_LENGTH + 1) - len);
@@ -2936,6 +2986,7 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
         return MSP_RESULT_ERROR; // will only be reached if the rollback is not ready
         break;
 #endif
+#ifdef USE_SAFE_HOME
     case MSP2_INAV_SET_SAFEHOME:
         if (dataSize == 10) {
              uint8_t i;
@@ -2949,6 +3000,7 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
             return MSP_RESULT_ERROR;
         }
         break;
+#endif
 
     default:
         return MSP_RESULT_ERROR;
@@ -3187,6 +3239,13 @@ static bool mspParameterGroupsCommand(sbuf_t *dst, sbuf_t *src)
     return true;
 }
 
+#ifdef USE_SIMULATOR
+bool isOSDTypeSupportedBySimulator(void)
+{
+	displayPort_t *osdDisplayPort = osdGetDisplayPort();
+	return (osdDisplayPort && osdDisplayPort->cols == 30 && (osdDisplayPort->rows == 13 || osdDisplayPort->rows == 16));
+}
+
 void mspWriteSimulatorOSD(sbuf_t *dst)
 {
 	//RLE encoding
@@ -3199,10 +3258,11 @@ void mspWriteSimulatorOSD(sbuf_t *dst)
 	static uint8_t osdPos_y = 0;
 	static uint8_t osdPos_x = 0;
 
-	displayPort_t *osdDisplayPort = osdGetDisplayPort();
-	
-	if (osdDisplayPort && osdDisplayPort->cols == 30 && (osdDisplayPort->rows == 13 || osdDisplayPort->rows == 16))
+
+	if (isOSDTypeSupportedBySimulator())
 	{
+		displayPort_t *osdDisplayPort = osdGetDisplayPort();
+
 		sbufWriteU8(dst, osdPos_y | (osdDisplayPort->rows == 16 ? 128: 0));
 		sbufWriteU8(dst, osdPos_x);
 
@@ -3216,7 +3276,7 @@ void mspWriteSimulatorOSD(sbuf_t *dst)
 
 		int processedRows = 16;
 
-		while (bytesCount < 80) //whole replay should be less 155 bytes at worst. 
+		while (bytesCount < 80) //whole response should be less 155 bytes at worst.
 		{
 			bool blink1;
 			uint16_t lastChar;
@@ -3283,14 +3343,14 @@ void mspWriteSimulatorOSD(sbuf_t *dst)
 			else if (count > 2 || cmd !=0 )
 			{
 				cmd |= count;  //long command for blink/bank switch and symbol repeat
-				sbufWriteU8(dst, 0); 
+				sbufWriteU8(dst, 0);
 				sbufWriteU8(dst, cmd);
 				sbufWriteU8(dst, lastChar & 0xff);
 				bytesCount += 3;
 			}
 			else if (count == 2)  //cmd == 0 here
 			{
-				sbufWriteU8(dst, lastChar & 0xff);  
+				sbufWriteU8(dst, lastChar & 0xff);
 				sbufWriteU8(dst, lastChar & 0xff);
 				bytesCount+=2;
 			}
@@ -3313,12 +3373,11 @@ void mspWriteSimulatorOSD(sbuf_t *dst)
 		sbufWriteU8(dst, 255);
 	}
 }
+#endif
 
 bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResult_e *ret)
 {
     uint8_t tmp_u8;
-//    uint16_t tmp_u16;
-
     const unsigned int dataSize = sbufBytesRemaining(src);
 
     switch (cmdMSP) {
@@ -3387,61 +3446,48 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
         *ret = mspFcLogicConditionCommand(dst, src);
         break;
 #endif
+#ifdef USE_SAFE_HOME
     case MSP2_INAV_SAFEHOME:
          *ret = mspFcSafeHomeOutCommand(dst, src);
          break;
+#endif
 
-    case MSP_TELEMETRY:
-        sbufWriteU8(dst, ARMING_FLAG(ARMED)); // arming status
-        sbufWriteU8(dst, 0); // modes
-        sbufWriteU32(dst, flightModeFlags);
-
-        sbufWriteU8(dst, 1); // messages
-        char buff[50] = {" "};
-        osdGetSystemMessage(buff, sizeof(buff), false);
-        const char *c = buff;
-        while (*c) {
-            sbufWriteU8(dst, *c++);
-        }
-        sbufWriteU8(dst, '\0'); // last symbol
-
-        sbufWriteU8(dst, 2); // home position
-        sbufWriteU16(dst, GPS_distanceToHome);
-        sbufWriteU16(dst, GPS_directionToHome);
-        sbufWriteU32(dst, baro.BaroAlt);
-        sbufWriteU8(dst, 3); // throttle
-        sbufWriteU8(dst, getThrottlePercent());
-        sbufWriteU8(dst, 4); // vario
-        sbufWriteU16(dst, getEstimatedActualVelocity(Z) + 32000);
-
-        *ret = MSP_RESULT_ACK;
-        break;
+#ifdef USE_SIMULATOR
     case MSP_SIMULATOR:
-		tmp_u8 = sbufReadU8(src); //MSP_SIMULATOR version
-		if (tmp_u8 != 2) break;
+		tmp_u8 = sbufReadU8(src); // Get the Simulator MSP version
+        
+        // Check the MSP version of simulator
+		if (tmp_u8 != SIMULATOR_MSP_VERSION) {
+            break;
+        }
 
 		simulatorData.flags = sbufReadU8(src);
-        if ((simulatorData.flags & SIMU_ENABLE) == 0) {
 
-			if (ARMING_FLAG(SIMULATOR_MODE)) { // just once
+        if (!SIMULATOR_HAS_OPTION(HITL_ENABLE)) {
+
+			if (ARMING_FLAG(SIMULATOR_MODE)) { // Just once
 				DISABLE_ARMING_FLAG(SIMULATOR_MODE);
 
+#ifdef USE_BARO
 				baroStartCalibration();
+#endif
 #ifdef USE_MAG
 				DISABLE_STATE(COMPASS_CALIBRATED);
 				compassInit();
 #endif
-				simulatorData.flags = 0;
-				//review: many states were affected. reboot?
+				simulatorData.flags = HITL_RESET_FLAGS;
+                // Review: Many states were affected. Reboot?
 
-				disarm(DISARM_SWITCH);  //disarm to prevent motor output!!!
+				disarm(DISARM_SWITCH);  // Disarm to prevent motor output!!!
 			}
-		}
-		else if (!areSensorsCalibrating()) {
-			if (!ARMING_FLAG(SIMULATOR_MODE)) { // just once
-				baroStartCalibration(); 
-#ifdef USE_MAG				
-				if (compassConfig()->mag_hardware != 0){
+		} else if (!areSensorsCalibrating()) {
+			if (!ARMING_FLAG(SIMULATOR_MODE)) { // Just once
+#ifdef USE_BARO
+				baroStartCalibration();
+#endif			
+
+#ifdef USE_MAG
+				if (compassConfig()->mag_hardware != MAG_NONE) {
 					sensorsSet(SENSOR_MAG);
 					ENABLE_STATE(COMPASS_CALIBRATED);
 					DISABLE_ARMING_FLAG(ARMING_DISABLED_HARDWARE_FAILURE);
@@ -3451,31 +3497,27 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 				}
 #endif
 				ENABLE_ARMING_FLAG(SIMULATOR_MODE);
-				LOG_D(SYSTEM, "Simulator enabled");
+				LOG_DEBUG(SYSTEM, "Simulator enabled");
 			}
 
 			if (dataSize >= 14) {
 
-				if (feature(FEATURE_GPS) && ((simulatorData.flags & SIMU_HAS_NEW_GPS_DATA)!=0) ) {
+				if (feature(FEATURE_GPS) && SIMULATOR_HAS_OPTION(HITL_HAS_NEW_GPS_DATA)) {
 					gpsSol.fixType = sbufReadU8(src);
 					gpsSol.hdop = gpsSol.fixType == GPS_NO_FIX ? 9999 : 100;
 					gpsSol.flags.hasNewData = true;
 					gpsSol.numSat = sbufReadU8(src);
 
 					if (gpsSol.fixType != GPS_NO_FIX) {
-						gpsSol.flags.validVelNE = 1;
-						gpsSol.flags.validVelD = 1;
-						gpsSol.flags.validEPE = 1;
+						gpsSol.flags.validVelNE = true;
+						gpsSol.flags.validVelD = true;
+						gpsSol.flags.validEPE = true;
 
 						gpsSol.llh.lat = sbufReadU32(src);
 						gpsSol.llh.lon = sbufReadU32(src);
 						gpsSol.llh.alt = sbufReadU32(src);
 						gpsSol.groundSpeed = (int16_t)sbufReadU16(src);
 						gpsSol.groundCourse = (int16_t)sbufReadU16(src);
-
-						//gpsSol.velNED[X] = gpsSol.groundSpeed * cos_approx(DECIDEGREES_TO_RADIANS(gpsSol.groundCourse));
-						//gpsSol.velNED[Y] = gpsSol.groundSpeed * sin_approx(DECIDEGREES_TO_RADIANS(gpsSol.groundCourse));
-						//gpsSol.velNED[Z] = 0;
 
 						gpsSol.velNED[X] = (int16_t)sbufReadU16(src);
 						gpsSol.velNED[Y] = (int16_t)sbufReadU16(src);
@@ -3484,138 +3526,83 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 						gpsSol.eph = 100;
 						gpsSol.epv = 100;
 
-						/*
-						//------------------------
-						gpsSol.flags.validVelNE = 0;
-						gpsSol.flags.validVelD = 0;
-						gpsSol.flags.validEPE = 0;
-
-						debug[0] = gpsSol.velNED[X];
-						debug[1] = gpsSol.velNED[Y];
-						debug[2] = gpsSol.velNED[Z];
-
-						debug[3] = posEstimator.gps.vel.x;
-						debug[4] = posEstimator.gps.vel.y;
-						debug[5] = posEstimator.gps.vel.z;
-
-						debug[6] = gpsSol.groundSpeed * cos_approx(DECIDEGREES_TO_RADIANS(gpsSol.groundCourse));
-						debug[7] = gpsSol.groundSpeed * sin_approx(DECIDEGREES_TO_RADIANS(gpsSol.groundCourse));
-						//------------------------
-						*/
-
 						ENABLE_STATE(GPS_FIX);
-
-						// Feed data to navigation
-						gpsProcessNewSolutionData();
+					} else {
+						sbufAdvance(src, sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) * 3);
 					}
-					else {
-						sbufAdvance(src, 4 + 4 + 4 + 2 + 2 + 2 * 3);
-						gpsProcessNewSolutionData();
-					}
-				}
-				else {
-					sbufAdvance(src, 1 + 1 + 4 + 4 + 4 + 2 + 2 + 2 * 3);
+                    // Feed data to navigation
+					gpsProcessNewSolutionData();
+				} else {
+					sbufAdvance(src, sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) * 3);
 				}
 
-				if ((simulatorData.flags & SIMU_USE_SENSORS) == 0) {
+				if (!SIMULATOR_HAS_OPTION(HITL_USE_IMU)) {
 					attitude.values.roll = (int16_t)sbufReadU16(src);
 					attitude.values.pitch = (int16_t)sbufReadU16(src);
 					attitude.values.yaw = (int16_t)sbufReadU16(src);
+				} else {
+					sbufAdvance(src, sizeof(uint16_t) * XYZ_AXIS_COUNT);
 				}
-				else
-				{
-					sbufAdvance(src, 2*3);
-					
-					/*
-					debug[0] = (int16_t)sbufReadU16(src);
-					debug[1] = (int16_t)sbufReadU16(src);
-					debug[2] = (int16_t)sbufReadU16(src);
-
-					debug[3] = attitude.values.roll;
-					debug[4] = attitude.values.pitch;
-					debug[5] = attitude.values.yaw;
-					*/
-				}
-
-				acc.accADCf[X] = ((int16_t)sbufReadU16(src)) / 1000.0f;// acceleration in 1G units
+                
+                // Get the acceleration in 1G units
+				acc.accADCf[X] = ((int16_t)sbufReadU16(src)) / 1000.0f;
 				acc.accADCf[Y] = ((int16_t)sbufReadU16(src)) / 1000.0f;
 				acc.accADCf[Z] = ((int16_t)sbufReadU16(src)) / 1000.0f;
-				acc.accVibeSq[X] = 0;
-				acc.accVibeSq[Y] = 0;
-				acc.accVibeSq[Z] = 0;
-
+				acc.accVibeSq[X] = 0.0f;
+				acc.accVibeSq[Y] = 0.0f;
+				acc.accVibeSq[Z] = 0.0f;
+                
+                // Get the angular velocity in DPS
 				gyro.gyroADCf[X] = ((int16_t)sbufReadU16(src)) / 16.0f;
 				gyro.gyroADCf[Y] = ((int16_t)sbufReadU16(src)) / 16.0f;
 				gyro.gyroADCf[Z] = ((int16_t)sbufReadU16(src)) / 16.0f;
 
-				if (sensors(SENSOR_BARO))
-				{
-					baro.baroPressure = sbufReadU32(src);
-					baro.baroTemperature = 2500;
-				}
-				else {
-					sbufAdvance(src,4);
+				if (sensors(SENSOR_BARO)) {
+					baro.baroPressure = (int32_t)sbufReadU32(src);
+					baro.baroTemperature = DEGREES_TO_CENTIDEGREES(SIMULATOR_BARO_TEMP);
+				} else {
+					sbufAdvance(src, sizeof(uint32_t));
 				}
 
-				if (sensors(SENSOR_MAG))
-				{
-					mag.magADC[X] = ((int16_t)sbufReadU16(src)) / 20;  //16000/20 = 800uT
+				if (sensors(SENSOR_MAG)) {
+					mag.magADC[X] = ((int16_t)sbufReadU16(src)) / 20;  // 16000 / 20 = 800uT
 					mag.magADC[Y] = ((int16_t)sbufReadU16(src)) / 20;
 					mag.magADC[Z] = ((int16_t)sbufReadU16(src)) / 20;
-				}
-				else {
-					sbufAdvance(src, 2*3);
+				} else {
+					sbufAdvance(src, sizeof(uint16_t) * XYZ_AXIS_COUNT);
 				}
 
-				if (simulatorData.flags & SIMU_EXT_BATTERY_VOLTAGE) {
+                if (SIMULATOR_HAS_OPTION(HITL_EXT_BATTERY_VOLTAGE)) {
                     simulatorData.vbat = sbufReadU8(src);
                 } else {
                     simulatorData.vbat = (uint8_t)(SIMULATOR_FULL_BATTERY * 10.0f);
                 }
 
-                if (simulatorData.flags & SIMU_AIRSPEED) {
-                     simulatorData.airSpeed = sbufReadU16(src);   
+                if (SIMULATOR_HAS_OPTION(HITL_AIRSPEED)) {
+                    simulatorData.airSpeed = sbufReadU16(src);   
 			    }
-
-			}
-			else {
+			} else {
 				DISABLE_STATE(GPS_FIX);
 			}
 		}
 
-		sbufWriteU16(dst, (uint16_t)input[INPUT_STABILIZED_ROLL]);
-		sbufWriteU16(dst, (uint16_t)input[INPUT_STABILIZED_PITCH]);
-		sbufWriteU16(dst, (uint16_t)input[INPUT_STABILIZED_YAW]);
-		sbufWriteU16(dst, (uint16_t)(ARMING_FLAG(ARMED) ? input[INPUT_STABILIZED_THROTTLE] : -500));
-
-		/*
-		debug[0] = mag.magADC[X];
-		debug[1] = mag.magADC[Y];
-		debug[2] = mag.magADC[Z];
-		//debug[3] = sensors(SENSOR_MAG) ? 1 : 0;
-		//debug[4] = STATE(COMPASS_CALIBRATED) ? 1 : 0;
-        fpVector3_t vMag;
-        fpVector3_t magBF;
-		magBF.x = mag.magADC[X];
-		magBF.y = mag.magADC[Y];
-		magBF.z = mag.magADC[Z];
-		quaternionRotateVectorInv(&vMag, &magBF, &orientation);    // BF -> EF
-		debug[3] = vMag.x;
-		debug[4] = vMag.y;
-		debug[5] = vMag.z;
-		
-		debug[6] = getvCorrectedMagNorth().x*1000;
-		debug[7] = getvCorrectedMagNorth().y*1000;
-		*/
-
+		sbufWriteU16(dst, (uint16_t)simulatorData.input[INPUT_STABILIZED_ROLL]);
+		sbufWriteU16(dst, (uint16_t)simulatorData.input[INPUT_STABILIZED_PITCH]);
+		sbufWriteU16(dst, (uint16_t)simulatorData.input[INPUT_STABILIZED_YAW]);
+		sbufWriteU16(dst, (uint16_t)(ARMING_FLAG(ARMED) ? simulatorData.input[INPUT_STABILIZED_THROTTLE] : -500));
 
 		simulatorData.debugIndex++;
-		if (simulatorData.debugIndex == 8){
+		if (simulatorData.debugIndex == 8) {
 			simulatorData.debugIndex = 0;
 		}
 
-		tmp_u8 = simulatorData.debugIndex | ((mixerConfig()->platformType == PLATFORM_AIRPLANE) ? 128 : 0) | (ARMING_FLAG(ARMED) ? 64 : 0);
-		sbufWriteU8(dst, tmp_u8 );
+		tmp_u8 = simulatorData.debugIndex |
+			((mixerConfig()->platformType == PLATFORM_AIRPLANE) ? 128 : 0) |
+			(ARMING_FLAG(ARMED) ? 64 : 0) |
+			(!feature(FEATURE_OSD) ? 32: 0) |
+			(!isOSDTypeSupportedBySimulator() ? 16 : 0);
+
+		sbufWriteU8(dst, tmp_u8);
 		sbufWriteU32(dst, debug[simulatorData.debugIndex]);
 
 		sbufWriteU16(dst, attitude.values.roll);
@@ -3626,6 +3613,8 @@ bool mspFCProcessInOutCommand(uint16_t cmdMSP, sbuf_t *dst, sbuf_t *src, mspResu
 
         *ret = MSP_RESULT_ACK;
         break;
+#endif
+
     default:
         // Not handled
         return false;
