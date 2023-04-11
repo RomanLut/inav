@@ -121,3 +121,5 @@ Many thanks to Sergii Sevriugin for testing
 # Links
 
 INAV HITL, симулятор https://github.com/RomanLut/INAV-X-Plane-HITL
+
+Аналогычна прошивка на основі INAV 6.0 https://github.com/RomanLut/inav/blob/6.0.0_gps_fix_estimation/docs/gps_fix_estimation.md
