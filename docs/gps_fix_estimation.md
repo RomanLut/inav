@@ -97,7 +97,7 @@
 
 # Що включає ця модифікація ?
 
-- INAV 5.0 release
+- INAV 6.0 release
 - підтримку симулятора https://github.com/RomanLut/INAV-X-Plane-HITL
 - можливість навігаціі за умов тимчасової відсутності GPS
 - можливість відключати GPS з пульта управління
@@ -114,7 +114,7 @@
 
 # Special thanks
 
-Many thanks to Sergii Sevriugin for testing
+Many thanks to Sergii Sevriugin and Andy White for testing
 
 # Links
 
