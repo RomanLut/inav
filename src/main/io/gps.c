@@ -169,7 +169,11 @@ uint16_t VbyThrottle(uint16_t throttle) {
 
 bool canEstimateGPSFix(void)
 {
+#if defined(USE_MAG)
 	return positionEstimationConfig()->allow_gps_fix_estimation && STATE(AIRPLANE) && sensors(SENSOR_GPS) && sensors(SENSOR_BARO) && sensors(SENSOR_MAG) && compassIsHealthy() && ARMING_FLAG(WAS_EVER_ARMED) && STATE(GPS_FIX_HOME);
+#else
+    return false;
+#endif
 }
 
 void updateEstimatedGPSFix(void) {
