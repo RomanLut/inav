@@ -81,6 +81,7 @@ typedef struct {
 gpsReceiverData_t gpsState;
 gpsStatistics_t   gpsStats;
 gpsSolutionData_t gpsSol;
+gpsSolutionData2_t gpsSol2;
 
 // Map gpsBaudRate_e index to baudRate_e
 baudRate_e gpsToSerialBaudRate[GPS_BAUDRATE_COUNT] = { BAUD_115200, BAUD_57600, BAUD_38400, BAUD_19200, BAUD_9600, BAUD_230400 };
@@ -331,6 +332,13 @@ void gpsProcessNewSolutionData(void)
 
     // Set sensor as ready and available
     sensorsSet(SENSOR_GPS);
+
+    //store sensor data for OSD
+    gpsSol2.fixType = gpsSol.fixType;
+    gpsSol2.numSat = gpsSol.numSat;
+    gpsSol2.llh.lat = gpsSol.llh.lat;
+    gpsSol2.llh.lon = gpsSol.llh.lon;
+    gpsSol2.llh.alt = gpsSol.llh.alt;
 
 	updateEstimatedGPSFix();
 
