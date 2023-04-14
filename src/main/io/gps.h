@@ -142,6 +142,14 @@ typedef struct gpsSolutionData_s {
 
 } gpsSolutionData_t;
 
+typedef struct gpsSolutionData2_s {
+    gpsFixType_e fixType;
+    uint8_t numSat;
+
+    gpsLocation_t llh;
+} gpsSolutionData2_t;
+
+
 typedef struct {
     uint16_t    lastMessageDt;
     uint32_t    errors;                // gps error counter - crc error/lost of data/sync etc..
@@ -150,6 +158,7 @@ typedef struct {
 } gpsStatistics_t;
 
 extern gpsSolutionData_t gpsSol;
+extern gpsSolutionData2_t gpsSol2;  //here we keep real data from sensor to display on OSD when GPS_BOXOFF is used
 extern gpsStatistics_t   gpsStats;
 
 struct magDev_s;
