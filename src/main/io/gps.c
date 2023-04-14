@@ -90,6 +90,7 @@ gpsStatistics_t   gpsStats;
 //and use it in the rest of code.
 gpsSolutionData_t gpsSolDRV;  //filled by driver
 gpsSolutionData_t gpsSol;     //used in the rest of the code
+gpsSolutionData2_t gpsSol2;
 
 // Map gpsBaudRate_e index to baudRate_e
 baudRate_e gpsToSerialBaudRate[GPS_BAUDRATE_COUNT] = { BAUD_115200, BAUD_57600, BAUD_38400, BAUD_19200, BAUD_9600, BAUD_230400, BAUD_460800, BAUD_921600 };
@@ -351,6 +352,13 @@ void updateEstimatedGPSFix(void)
 void gpsProcessNewDriverData(void)
 {
     gpsSol = gpsSolDRV;
+
+    //store sensor data for OSD
+    gpsSol2.fixType = gpsSol.fixType;
+    gpsSol2.numSat = gpsSol.numSat;
+    gpsSol2.llh.lat = gpsSol.llh.lat;
+    gpsSol2.llh.lon = gpsSol.llh.lon;
+    gpsSol2.llh.alt = gpsSol.llh.alt;
 
 #ifdef USE_GPS_FIX_ESTIMATION
     processDisableGPSFix();

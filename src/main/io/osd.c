@@ -1689,6 +1689,7 @@ static bool osdDrawSingleElement(uint8_t item)
     uint8_t elemPosY = OSD_Y(pos);
     textAttributes_t elemAttr = TEXT_ATTRIBUTES_NONE;
     char buff[32] = {0};
+    char buff2[32] = {0};
 
     switch (item) {
     case OSD_RSSI_VALUE:
@@ -1847,6 +1848,16 @@ static bool osdDrawSingleElement(uint8_t item)
                 buff[3] = '\0';
             }
             TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
+
+            buff2[0] = ' ';
+            buff2[1] = '#';
+            buff2[3] = '*';
+            buff2[4] = '*';
+        }
+        else {
+            buff2[0] = ' ';
+            buff2[1] = '#';
+            tfp_sprintf(buff2 + 2, "%2d", gpsSol2.numSat);
         }
         break;
 
@@ -1889,10 +1900,14 @@ static bool osdDrawSingleElement(uint8_t item)
 
     case OSD_GPS_LAT:
         osdFormatCoordinate(buff, SYM_LAT, gpsSol.llh.lat);
+        osdFormatCoordinate(buff2, SYM_LAT, ( gpsSol2.fixType == GPS_FIX_3D ) ? gpsSol2.llh.lat : 0);
+		buff2[0] = '#';
         break;
 
     case OSD_GPS_LON:
         osdFormatCoordinate(buff, SYM_LON, gpsSol.llh.lon);
+        osdFormatCoordinate(buff2, SYM_LON, ( gpsSol2.fixType == GPS_FIX_3D ) ? gpsSol2.llh.lon : 0);
+		buff2[0] = '#';
         break;
 
     case OSD_HOME_DIR:
@@ -2674,6 +2689,7 @@ static bool osdDrawSingleElement(uint8_t item)
         }
     case OSD_GLIDE_RANGE:
         {
+/*
             uint16_t glideSeconds = osdGetRemainingGlideTime();
             buff[0] = SYM_GLIDE_DIST;
             if (glideSeconds > 0) {
@@ -2683,6 +2699,23 @@ static bool osdDrawSingleElement(uint8_t item)
                 tfp_sprintf(buff + 1, "%s%c", "---", SYM_BLANK);
                 buff[5] = '\0';
             }
+*/
+        	float errx = (gpsSol.llh.lat - gpsSol2.llh.lat) * DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR;
+			float erry = (gpsSol.llh.lon - gpsSol2.llh.lon) * (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * (posControl.gpsOrigin.valid ? posControl.gpsOrigin.scale : 1));
+			float err = fast_fsqrtf(errx * errx + erry * erry);   //in cm
+
+            buff[0] = SYM_GLIDE_DIST;
+
+            if ( gpsSol2.fixType == GPS_FIX_3D ) {
+              osdFormatDistanceSymbol(buff + 1, err >= 99900000 ? 99900000 : err, 0);
+            }
+            else {
+            buff[1] = '-';
+            buff[2] = '-';
+            buff[3] = '-';
+            buff[4] = '0';
+            }
+
             break;
         }
 #endif
@@ -3617,6 +3650,11 @@ static bool osdDrawSingleElement(uint8_t item)
     }
 
     displayWriteWithAttr(osdDisplayPort, elemPosX, elemPosY, buff, elemAttr);
+
+    if ( buff2[0] != 0 )
+    {
+       displayWriteWithAttr(osdDisplayPort, elemPosX, elemPosY + 1, buff2, TEXT_ATTRIBUTES_NONE);
+    }
     return true;
 }
 
