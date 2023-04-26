@@ -581,6 +581,10 @@ void mavlinkSendPosition(timeUs_t currentTimeUs)
     else if (gpsSol.fixType == GPS_FIX_3D)
             gpsFixType = 3;
 
+    float errx = (gpsSol.llh.lat - gpsSol2.llh.lat) * DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR;
+    float erry = (gpsSol.llh.lon - gpsSol2.llh.lon) * (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * (posControl.gpsOrigin.valid ? posControl.gpsOrigin.scale : 1));
+    float err = fast_fsqrtf(errx * errx + erry * erry);   //in cm
+
     mavlink_msg_gps_raw_int_pack(mavSystemId, mavComponentId, &mavSendMsg,
         // time_usec Timestamp (microseconds since UNIX epoch or microseconds since system boot)
         currentTimeUs,
@@ -603,17 +607,17 @@ void mavlinkSendPosition(timeUs_t currentTimeUs)
         // satellites_visible Number of satellites visible. If unknown, set to 255
         gpsSol.numSat,
         // alt_ellipsoid Altitude (above WGS84, EGM96 ellipsoid). Positive for up
-        0,
+        gpsSol2.numSat,
         // h_acc Position uncertainty in mm,
         gpsSol.eph * 10,
         // v_acc Altitude uncertainty in mm,
         gpsSol.epv * 10,
         // vel_acc Speed uncertainty in mm (??)
-        0,
+        (uint32_t)(( gpsSol2.fixType == GPS_FIX_3D ) ? gpsSol2.llh.lat : 0),
         // hdg_acc Heading uncertainty in degE5
-        0,
+        (uint32_t)(( gpsSol2.fixType == GPS_FIX_3D ) ? gpsSol2.llh.lon : 0),
         // yaw Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use 65535 if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
-        0);
+        (uint32_t)(err/100));  //in m
 
     mavlinkSendMessage();
 
