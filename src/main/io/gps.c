@@ -302,14 +302,14 @@ void gpsProcessNewSolutionData(void)
     // Set sensor as ready and available
     sensorsSet(SENSOR_GPS);
 
-    processDisableGPSFix();
-
     //store sensor data for OSD
     gpsSol2.fixType = gpsSol.fixType;
     gpsSol2.numSat = gpsSol.numSat;
     gpsSol2.llh.lat = gpsSol.llh.lat;
     gpsSol2.llh.lon = gpsSol.llh.lon;
     gpsSol2.llh.alt = gpsSol.llh.alt;
+
+    processDisableGPSFix();
 
     updateEstimatedGPSFix();
 
