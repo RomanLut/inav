@@ -41,10 +41,6 @@
 #include "io/gps.h"
 
 
-#define WINDESTIMATOR_TIMEOUT       60*15 // 15min with out altitude change
-#define WINDESTIMATOR_ALTITUDE_SCALE WINDESTIMATOR_TIMEOUT/500.0f //or 500m altitude change
-// Based on WindEstimation.pdf paper
-
 static bool hasValidWindEstimate = false;
 static float estimatedWind[XYZ_AXIS_COUNT] = {0, 0, 0};    // wind velocity vectors in cm / sec in earth frame
 static float lastGroundVelocity[XYZ_AXIS_COUNT];
@@ -87,9 +83,6 @@ void updateWindEstimator(timeUs_t currentTimeUs)
     static float lastValidEstimateAltitude = 0.0f;
     float currentAltitude = gpsSol.llh.alt / 100.0f; // altitude in m
 
-    if ((US2S(currentTimeUs - lastValidWindEstimate) + WINDESTIMATOR_ALTITUDE_SCALE * fabsf(currentAltitude - lastValidEstimateAltitude)) > WINDESTIMATOR_TIMEOUT) {
-        hasValidWindEstimate = false;
-    }
 
     if (!STATE(FIXED_WING_LEGACY) ||
         !isGPSHeadingValid() ||
