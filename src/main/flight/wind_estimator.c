@@ -41,7 +41,7 @@
 #include "io/gps.h"
 
 
-#define WINDESTIMATOR_TIMEOUT       60*15 // 15min with out altitude change
+#define WINDESTIMATOR_TIMEOUT       60*30 // 30min with out attitude change
 #define WINDESTIMATOR_ALTITUDE_SCALE WINDESTIMATOR_TIMEOUT/500.0f //or 500m altitude change
 // Based on WindEstimation.pdf paper
 
@@ -52,7 +52,7 @@ static float lastFuselageDirection[XYZ_AXIS_COUNT];
 
 bool isEstimatedWindSpeedValid(void)
 {
-    return hasValidWindEstimate;
+    return hasValidWindEstimate || STATE(GPS_ESTIMATED_FIX);  //use any wind estimate with GPS fix estimation.
 }
 
 float getEstimatedWindSpeed(int axis)
