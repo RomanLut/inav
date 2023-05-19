@@ -82,8 +82,14 @@ typedef struct {
 // GPS public data
 gpsReceiverData_t gpsState;
 gpsStatistics_t   gpsStats;
-gpsSolutionData_t gpsSol;
 gpsSolutionData2_t gpsSol2;
+
+//it is not safe to access gpsSolDRV which is filled in gps thread by driver.
+//gpsSolDRV can be accessed only after driver signalled that data is ready
+//we copy gpsSolDRV to gpsSol, process by "Disable GPS logic condition" and "GPS Fix estimation" features
+//and use it in the rest of code.
+gpsSolutionData_t gpsSolDRV;  //filled by driver
+gpsSolutionData_t gpsSol;     //used in the rest of the code
 
 // Map gpsBaudRate_e index to baudRate_e
 baudRate_e gpsToSerialBaudRate[GPS_BAUDRATE_COUNT] = { BAUD_115200, BAUD_57600, BAUD_38400, BAUD_19200, BAUD_9600, BAUD_230400 };
@@ -196,8 +202,6 @@ void processDisableGPSFix(void)
         gpsSol.llh.lat = last_lat;
         gpsSol.llh.lon = last_lon;
         gpsSol.llh.alt = last_alt;
-
-        DISABLE_STATE(GPS_FIX);
     } else {
         last_lat = gpsSol.llh.lat;
         last_lon = gpsSol.llh.lon;
@@ -205,6 +209,7 @@ void processDisableGPSFix(void)
     }
 }
 
+//called after gpsSolDRV is copied to gpsSol and processed by "Disable GPS Fix logical condition"
 void updateEstimatedGPSFix(void) 
 {
     static uint32_t lastUpdateMs = 0;
@@ -216,15 +221,14 @@ void updateEstimatedGPSFix(void)
     int32_t dt = t - lastUpdateMs;
     lastUpdateMs = t;
 
-    if (STATE(GPS_FIX) || !canEstimateGPSFix()) {
-        DISABLE_STATE(GPS_ESTIMATED_FIX);
+    bool sensorHasFix = gpsSol.fixType == GPS_FIX_3D && gpsSol.numSat >= gpsConfig()->gpsMinSats;
+
+    if (sensorHasFix || !canEstimateGPSFix()) {
         estimated_lat = gpsSol.llh.lat;
         estimated_lon = gpsSol.llh.lon;
         estimated_alt = posControl.gpsOrigin.alt + baro.BaroAlt;
         return;
     }
-
-    ENABLE_STATE(GPS_ESTIMATED_FIX);
 
     gpsSol.fixType = GPS_FIX_3D;
     gpsSol.hdop = 99;
@@ -284,9 +288,26 @@ void updateEstimatedGPSFix(void)
 }
 
 
+void gpsProcessNewDriverData(void)
+{
+    gpsSol = gpsSolDRV;
 
+    processDisableGPSFix();
+    updateEstimatedGPSFix();
+}
+
+//called after: 
+//1)driver copies gpsSolDRV to gpsSol
+//2)gpsSol is processed by "Disable GPS logical switch"
+//3)gpsSol is processed by GPS Fix estimator
 void gpsProcessNewSolutionData(void)
 {
+    if ( gpsSol.numSat == 99 ) {
+        ENABLE_STATE(GPS_ESTIMATED_FIX);
+        DISABLE_STATE(GPS_FIX);
+    } else {
+        DISABLE_STATE(GPS_ESTIMATED_FIX);
+
     // Set GPS fix flag only if we have 3D fix
     if (gpsSol.fixType == GPS_FIX_3D && gpsSol.numSat >= gpsConfig()->gpsMinSats) {
         ENABLE_STATE(GPS_FIX);
@@ -298,20 +319,10 @@ void gpsProcessNewSolutionData(void)
         gpsSol.flags.validEPE = false;
         DISABLE_STATE(GPS_FIX);
     }
+    }
 
     // Set sensor as ready and available
     sensorsSet(SENSOR_GPS);
-
-    //store sensor data for OSD
-    gpsSol2.fixType = gpsSol.fixType;
-    gpsSol2.numSat = gpsSol.numSat;
-    gpsSol2.llh.lat = gpsSol.llh.lat;
-    gpsSol2.llh.lon = gpsSol.llh.lon;
-    gpsSol2.llh.alt = gpsSol.llh.alt;
-
-    processDisableGPSFix();
-
-    updateEstimatedGPSFix();
 
     // Pass on GPS update to NAV and IMU
     onNewGPSData();
@@ -330,28 +341,26 @@ void gpsProcessNewSolutionData(void)
     gpsSol.flags.gpsHeartbeat = !gpsSol.flags.gpsHeartbeat;
 }
 
-static void gpsResetSolution(void)
+static void gpsResetSolution(gpsSolutionData_t* gpsSol)
 {
-    gpsSol.eph = 9999;
-    gpsSol.epv = 9999;
-    gpsSol.numSat = 0;
-    gpsSol.hdop = 9999;
+    gpsSol->eph = 9999;
+    gpsSol->epv = 9999;
+    gpsSol->numSat = 0;
+    gpsSol->hdop = 9999;
 
-    gpsSol.fixType = GPS_NO_FIX;
+    gpsSol->fixType = GPS_NO_FIX;
 
-    gpsSol.flags.validVelNE = false;
-    gpsSol.flags.validVelD = false;
-    gpsSol.flags.validMag = false;
-    gpsSol.flags.validEPE = false;
-    gpsSol.flags.validTime = false;
+    gpsSol->flags.validVelNE = false;
+    gpsSol->flags.validVelD = false;
+    gpsSol->flags.validEPE = false;
+    gpsSol->flags.validTime = false;
 }
 
 void gpsTryEstimateOnTimeout(void)
 {
-    gpsResetSolution();
+    gpsResetSolution(&gpsSolDRV);
+    gpsResetSolution(&gpsSol);
     DISABLE_STATE(GPS_FIX);
-
-    processDisableGPSFix();
 
     updateEstimatedGPSFix();
 
@@ -377,7 +386,8 @@ void gpsInit(void)
     gpsStats.timeouts = 0;
 
     // Reset solution, timeout and prepare to start
-    gpsResetSolution();
+    gpsResetSolution(&gpsSolDRV);
+    gpsResetSolution(&gpsSol);
     gpsSetProtocolTimeout(gpsState.baseTimeoutMs);
     gpsSetState(GPS_UNKNOWN);
 
@@ -485,7 +495,8 @@ bool gpsUpdate(void)
             gpsSol.fixType = GPS_NO_FIX;
 
             // Reset solution
-            gpsResetSolution();
+            gpsResetSolution(&gpsSolDRV);
+            gpsResetSolution(&gpsSol);
 
             // Call GPS protocol reset handler
             gpsProviders[gpsState.gpsConfig->provider].restart();
