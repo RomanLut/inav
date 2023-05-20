@@ -82,7 +82,6 @@ typedef struct {
 // GPS public data
 gpsReceiverData_t gpsState;
 gpsStatistics_t   gpsStats;
-gpsSolutionData2_t gpsSol2;
 
 //it is not safe to access gpsSolDRV which is filled in gps thread by driver.
 //gpsSolDRV can be accessed only after driver signalled that data is ready

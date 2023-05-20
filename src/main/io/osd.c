@@ -66,6 +66,7 @@ FILE_COMPILE_FOR_SPEED
 
 #include "io/flashfs.h"
 #include "io/gps.h"
+#include "io/gps_private.h"
 #include "io/osd.h"
 #include "io/osd_common.h"
 #include "io/osd_hud.h"
@@ -1744,7 +1745,7 @@ static bool osdDrawSingleElement(uint8_t item)
         else {
             buff2[0] = ' ';
             buff2[1] = '#';
-            tfp_sprintf(buff2 + 2, "%2d", gpsSol2.numSat);
+            tfp_sprintf(buff2 + 2, "%2d", gpsSolDRV.numSat);
         }
         break;
 
@@ -1787,13 +1788,13 @@ static bool osdDrawSingleElement(uint8_t item)
 
     case OSD_GPS_LAT:
         osdFormatCoordinate(buff, SYM_LAT, gpsSol.llh.lat);
-        osdFormatCoordinate(buff2, SYM_LAT, ( gpsSol2.fixType == GPS_FIX_3D ) ? gpsSol2.llh.lat : 0);
+        osdFormatCoordinate(buff2, SYM_LAT, ( gpsSolDRV.fixType == GPS_FIX_3D ) ? gpsSolDRV.llh.lat : 0);
 		buff2[0] = '#';
         break;
 
     case OSD_GPS_LON:
         osdFormatCoordinate(buff, SYM_LON, gpsSol.llh.lon);
-        osdFormatCoordinate(buff2, SYM_LON, ( gpsSol2.fixType == GPS_FIX_3D ) ? gpsSol2.llh.lon : 0);
+        osdFormatCoordinate(buff2, SYM_LON, ( gpsSolDRV.fixType == GPS_FIX_3D ) ? gpsSolDRV.llh.lon : 0);
 		buff2[0] = '#';
         break;
 
@@ -2538,13 +2539,13 @@ static bool osdDrawSingleElement(uint8_t item)
                 buff[5] = '\0';
             }
 */
-        	float errx = (gpsSol.llh.lat - gpsSol2.llh.lat) * DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR;
-			float erry = (gpsSol.llh.lon - gpsSol2.llh.lon) * (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * (posControl.gpsOrigin.valid ? posControl.gpsOrigin.scale : 1));
+        	float errx = (gpsSol.llh.lat - gpsSolDRV.llh.lat) * DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR;
+			float erry = (gpsSol.llh.lon - gpsSolDRV.llh.lon) * (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * (posControl.gpsOrigin.valid ? posControl.gpsOrigin.scale : 1));
 			float err = fast_fsqrtf(errx * errx + erry * erry);   //in cm
 
             buff[0] = SYM_GLIDE_DIST;
 
-            if ( gpsSol2.fixType == GPS_FIX_3D ) {
+            if ( gpsSolDRV.fixType == GPS_FIX_3D ) {
               osdFormatDistanceSymbol(buff + 1, err >= 99900000 ? 99900000 : err, 0);
             }
             else {

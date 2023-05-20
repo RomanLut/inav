@@ -59,6 +59,7 @@
 #include "flight/servos.h"
 
 #include "io/gps.h"
+#include "io/gps_private.h"
 #include "io/ledstrip.h"
 #include "io/serial.h"
 #include "io/osd.h"
@@ -581,8 +582,8 @@ void mavlinkSendPosition(timeUs_t currentTimeUs)
     else if (gpsSol.fixType == GPS_FIX_3D)
             gpsFixType = 3;
 
-    float errx = (gpsSol.llh.lat - gpsSol2.llh.lat) * DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR;
-    float erry = (gpsSol.llh.lon - gpsSol2.llh.lon) * (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * (posControl.gpsOrigin.valid ? posControl.gpsOrigin.scale : 1));
+    float errx = (gpsSol.llh.lat - gpsSolDRV.llh.lat) * DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR;
+    float erry = (gpsSol.llh.lon - gpsSolDRV.llh.lon) * (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * (posControl.gpsOrigin.valid ? posControl.gpsOrigin.scale : 1));
     float err = fast_fsqrtf(errx * errx + erry * erry);   //in cm
 
     mavlink_msg_gps_raw_int_pack(mavSystemId, mavComponentId, &mavSendMsg,
@@ -607,15 +608,15 @@ void mavlinkSendPosition(timeUs_t currentTimeUs)
         // satellites_visible Number of satellites visible. If unknown, set to 255
         gpsSol.numSat,
         // alt_ellipsoid Altitude (above WGS84, EGM96 ellipsoid). Positive for up
-        gpsSol2.numSat,
+        gpsSolDRV.numSat,
         // h_acc Position uncertainty in mm,
         gpsSol.eph * 10,
         // v_acc Altitude uncertainty in mm,
         gpsSol.epv * 10,
         // vel_acc Speed uncertainty in mm (??)
-        (uint32_t)(( gpsSol2.fixType == GPS_FIX_3D ) ? gpsSol2.llh.lat : 0),
+        (uint32_t)(( gpsSolDRV.fixType == GPS_FIX_3D ) ? gpsSolDRV.llh.lat : 0),
         // hdg_acc Heading uncertainty in degE5
-        (uint32_t)(( gpsSol2.fixType == GPS_FIX_3D ) ? gpsSol2.llh.lon : 0),
+        (uint32_t)(( gpsSolDRV.fixType == GPS_FIX_3D ) ? gpsSolDRV.llh.lon : 0),
         // yaw Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use 65535 if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
         (uint32_t)(err/100));  //in m
 

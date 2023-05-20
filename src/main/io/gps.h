@@ -156,7 +156,6 @@ typedef struct {
 } gpsStatistics_t;
 
 extern gpsSolutionData_t gpsSol;
-extern gpsSolutionData2_t gpsSol2;  //here we keep real data from sensor to display on OSD when GPS_BOXOFF is used
 extern gpsStatistics_t   gpsStats;
 
 struct magDev_s;
