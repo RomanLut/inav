@@ -106,6 +106,8 @@ struct {
     {0x1C3017, 128, 256},
     // JEDEC_ID_SPANSION_S25FL116
     {0x014015, 32, 256 },
+    // JEDEC_ID_GIGADEVICE_GD25Q16
+    {0xc84015, 32, 256 },
     // End of list
     {0x000000, 0, 0}};
 
