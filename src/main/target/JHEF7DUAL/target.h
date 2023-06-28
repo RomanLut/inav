@@ -154,11 +154,12 @@
 #define USE_PINIO
 #define PINIO1_PIN                      PC14
 #define PINIO2_PIN                      PB9
+#define PINIO3_PIN                      PC8
 #define USE_PINIOBOX
 
 /*** Timer/PWM output ***/
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
-#define MAX_PWM_OUTPUT_PORTS            6
+#define MAX_PWM_OUTPUT_PORTS            5
 #define USE_DSHOT
 
 /*** Used pins ***/
