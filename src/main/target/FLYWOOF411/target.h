@@ -27,8 +27,8 @@
 
 #define LED0                    PC13
 
-#define BEEPER                  PC14
-#define BEEPER_INVERTED
+//#define BEEPER                  PC14
+//#define BEEPER_INVERTED
 
 
 // *************** SPI **********************
@@ -162,6 +162,7 @@
 #define USE_PINIO
 #define USE_PINIOBOX
 #define PINIO1_PIN                  PA10  //S3
+#define PINIO2_PIN                  PC14  //LED
 
 // ***************  OTHERS *************************
 #define DEFAULT_FEATURES                (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_VBAT | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)

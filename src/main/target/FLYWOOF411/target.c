@@ -71,4 +71,5 @@ const int timerHardwareCount = sizeof(timerHardware) / sizeof(timerHardware[0]);
 void targetConfiguration(void)
 {
     pinioBoxConfigMutable()->permanentId[0] = BOX_PERMANENT_ID_USER1;
+    pinioBoxConfigMutable()->permanentId[1] = BOX_PERMANENT_ID_USER2;
 }
