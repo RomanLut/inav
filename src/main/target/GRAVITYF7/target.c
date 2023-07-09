@@ -25,8 +25,8 @@
 #include "drivers/pwm_mapping.h"
 #include "drivers/timer.h"
 
-/*
-const timerHardware_t timerHardware[] = {
+
+timerHardware_t timerHardware[] = {
     DEF_TIM(TIM4, CH2, PB7,  TIM_USE_PPM,   0, 0),                          // PPM&SBUS
 
     DEF_TIM(TIM1, CH2, PA9,  TIM_USE_MC_MOTOR  | TIM_USE_FW_MOTOR, 0, 0),   // S1 (2,1)
@@ -39,8 +39,9 @@ const timerHardware_t timerHardware[] = {
     //DEF_TIM(TIM3, CH4, PB1,  TIM_USE_CAMERA_CONTROL, 0, 0),     // FC CAM
 
 };
-*/
 
+
+/*
 timerHardware_t timerHardware[] = {
     DEF_TIM(TIM4, CH2, PB7,  TIM_USE_PPM,   0, 0),                          // PPM&SBUS
 
@@ -54,5 +55,5 @@ timerHardware_t timerHardware[] = {
     //DEF_TIM(TIM3, CH4, PB1,  TIM_USE_CAMERA_CONTROL, 0, 0),     // FC CAM
 
 };
-
+*/
 const int timerHardwareCount = sizeof(timerHardware) / sizeof(timerHardware[0]);
