@@ -308,6 +308,8 @@ uint16_t max7456GetScreenSize(void)
 
 uint8_t max7456GetRowsCount(void)
 {
+return MAX7456_LINES_PAL;
+/*
     if (!state.isInitialized) {
         // Not initialized yet
         return 0;
@@ -317,6 +319,7 @@ uint8_t max7456GetRowsCount(void)
     }
 
     return MAX7456_LINES_NTSC;
+*/
 }
 
 //because MAX7456 need some time to detect video system etc. we need to wait for a while to initialize it at startup
@@ -380,7 +383,8 @@ void max7456Init(const videoSystem_e videoSystem)
 {
     uint8_t buf[(MAX7456_LINES_PAL + 1) * 2];
     int bufPtr;
-    state.dev = busDeviceInit(BUSTYPE_SPI, DEVHW_MAX7456, 0, OWNER_OSD);
+//    state.dev = busDeviceInit(BUSTYPE_SPI, DEVHW_MAX7456, 0, OWNER_OSD);
+    state.dev = NULL;
 
     if (state.dev == NULL) {
         return;

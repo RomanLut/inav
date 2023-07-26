@@ -17,6 +17,12 @@
 
 #pragma once
 
+#define USE_OSD
+#define USE_MAX7456
+#define MAX7456_SPI_BUS         BUS_SPI1
+#define MAX7456_CS_PIN          PB4
+
+
 #define TARGET_BOARD_IDENTIFIER "ABF4"
 #define USBD_PRODUCT_STRING     "Airbot F4 / Flip32 F4"
 
