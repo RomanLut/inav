@@ -26,6 +26,7 @@
 #include "drivers/timer.h"
 
 
+/*
 timerHardware_t timerHardware[] = {
     DEF_TIM(TIM4, CH2, PB7,  TIM_USE_PPM,   0, 0),                          // PPM&SBUS
 
@@ -39,9 +40,9 @@ timerHardware_t timerHardware[] = {
     //DEF_TIM(TIM3, CH4, PB1,  TIM_USE_CAMERA_CONTROL, 0, 0),     // FC CAM
 
 };
+*/
 
 
-/*
 timerHardware_t timerHardware[] = {
     DEF_TIM(TIM4, CH2, PB7,  TIM_USE_PPM,   0, 0),                          // PPM&SBUS
 
@@ -50,10 +51,10 @@ timerHardware_t timerHardware[] = {
     DEF_TIM(TIM8, CH3, PC8,  TIM_USE_MC_MOTOR  | TIM_USE_FW_SERVO, 0, 0),   // S3 (2,5)
     DEF_TIM(TIM8, CH4, PC9,  TIM_USE_MC_MOTOR  | TIM_USE_FW_SERVO, 0, 0),   // S4 (2,5)
 
-    DEF_TIM(TIM2, CH1, PA15,  TIM_USE_FW_SERVO, 0, 0),                      // LED STRIP(1,5)
+    DEF_TIM(TIM2, CH1, PA15,  TIM_USE_LED, 0, 0),                      // LED STRIP(1,5)
 
-    //DEF_TIM(TIM3, CH4, PB1,  TIM_USE_CAMERA_CONTROL, 0, 0),     // FC CAM
+//    DEF_TIM(TIM3, CH4, PB1,  TIM_USE_CAMERA_CONTROL, 0, 0),     // FC CAM
 
 };
-*/
+
 const int timerHardwareCount = sizeof(timerHardware) / sizeof(timerHardware[0]);
