@@ -84,7 +84,7 @@ static bool batteryUseCapacityThresholds = false;
 static bool batteryFullWhenPluggedIn = false;
 static bool profileAutoswitchDisable = false;
 
-static uint16_t vbat = 0;                       // battery voltage in 0.1V steps (filtered)
+static uint16_t vbat = 0;                       // battery voltage in 0.01V steps (filtered)
 static uint16_t powerSupplyImpedance = 0;       // calculated impedance in milliohm
 static uint16_t sagCompensatedVBat = 0;         // calculated no load vbat
 static bool powerSupplyImpedanceIsValid = false;
@@ -274,13 +274,6 @@ static void updateBatteryVoltage(timeUs_t timeDelta, bool justConnected)
 {
     static pt1Filter_t vbatFilterState;
 
-#ifdef USE_SIMULATOR
-    if (ARMING_FLAG(SIMULATOR_MODE_HITL) && SIMULATOR_HAS_OPTION(HITL_SIMULATE_BATTERY)) {
-        vbat = simulatorData.vbat;
-        return;
-    }
-#endif
-
     switch (batteryMetersConfig()->voltage.type) {
         case VOLTAGE_SENSOR_ADC:
             {
@@ -311,6 +304,14 @@ static void updateBatteryVoltage(timeUs_t timeDelta, bool justConnected)
             vbat = 0;
             break;
     }
+
+#ifdef USE_SIMULATOR
+    if (ARMING_FLAG(SIMULATOR_MODE_HITL) && SIMULATOR_HAS_OPTION(HITL_SIMULATE_BATTERY)) {
+        vbat = ((uint16_t)simulatorData.vbat)*10;
+        return;
+    }
+#endif
+
     if (justConnected) {
         pt1FilterReset(&vbatFilterState, vbat);
     } else {
