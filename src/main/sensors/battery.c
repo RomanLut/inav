@@ -274,6 +274,13 @@ static void updateBatteryVoltage(timeUs_t timeDelta, bool justConnected)
 {
     static pt1Filter_t vbatFilterState;
 
+#ifdef USE_SIMULATOR
+    if (ARMING_FLAG(SIMULATOR_MODE_HITL) && SIMULATOR_HAS_OPTION(HITL_SIMULATE_BATTERY)) {
+        vbat = ((uint16_t)simulatorData.vbat) * 10;
+        return;
+    }
+#endif
+
     switch (batteryMetersConfig()->voltage.type) {
         case VOLTAGE_SENSOR_ADC:
             {
