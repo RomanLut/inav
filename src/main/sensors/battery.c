@@ -276,7 +276,7 @@ static void updateBatteryVoltage(timeUs_t timeDelta, bool justConnected)
 
 #ifdef USE_SIMULATOR
     if (ARMING_FLAG(SIMULATOR_MODE_HITL) && SIMULATOR_HAS_OPTION(HITL_SIMULATE_BATTERY)) {
-        vbat = ((uint16_t)simulatorData.vbat) * 10;
+        vbat = simulatorData.vbat;
         return;
     }
 #endif
