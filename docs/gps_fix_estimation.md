@@ -165,6 +165,12 @@
 
 Навігація без GPS fix можлива лише за умов стабільної роботи сенсорів GPS, Compass та Baro. Сенсор GPS повинен працювати і рапортувати 0 супутників, а не зависати через проблеми з залізом. Прошивка не вирішує проблеми "відпадаючих" сенсорів через завади по живленню!
 
+# nav_rth_abort_threshold
+Рекомендується відключити ```nav_rth_abort_threshold```, щоб виключити Emergency lading при спуфінгу GPS.
+
+```set nav_rth_abort_threshold = 0```
+
+
 # Links
 
 INAV HITL, симулятор https://github.com/RomanLut/INAV-X-Plane-HITL
