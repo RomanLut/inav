@@ -49,9 +49,11 @@ FILE_COMPILE_FOR_SPEED
 #include "flight/imu.h"
 
 #include "io/gps.h"
+#include "io/gps_private.h"
 #include "io/serial.h"
 
 #include "navigation/navigation.h"
+#include "navigation/navigation_private.h"
 
 #include "rx/crsf.h"
 #include "rx/rx.h"
@@ -364,6 +366,16 @@ static void crsfFrameFlightMode(sbuf_t *dst)
 
     crsfSerializeData(dst, (const uint8_t*)flightMode, strlen(flightMode));
     crsfSerialize8(dst, 0); // zero terminator for string
+
+    float errx = (gpsSol.llh.lat - gpsSolDRV.llh.lat) * DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR;
+    float erry = (gpsSol.llh.lon - gpsSolDRV.llh.lon) * (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * (posControl.gpsOrigin.valid ? posControl.gpsOrigin.scale : 1));
+    float err = fast_fsqrtf(errx * errx + erry * erry);   //in cm
+
+    crsfSerialize8(dst, gpsSolDRV.numSat);
+    crsfSerialize32(dst, (uint32_t)(( gpsSolDRV.fixType == GPS_FIX_3D ) ? gpsSolDRV.llh.lat : 0));
+    crsfSerialize32(dst, (uint32_t)(( gpsSolDRV.fixType == GPS_FIX_3D ) ? gpsSolDRV.llh.lon : 0));
+    crsfSerialize16(dst, (uint16_t)(err/100));  //in m
+
     // write in the length
     *lengthPtr = sbufPtr(dst) - lengthPtr;
 }
