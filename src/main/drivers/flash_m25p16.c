@@ -27,6 +27,8 @@
 #include "drivers/bus.h"
 #include "drivers/time.h"
 
+#include "build/debug.h"
+
 #define M25P16_INSTRUCTION_RDID             0x9F
 #define M25P16_INSTRUCTION_READ_BYTES       0x03
 #define M25P16_INSTRUCTION_READ_STATUS_REG  0x05
@@ -107,7 +109,7 @@ struct {
     // JEDEC_ID_SPANSION_S25FL116
     {0x014015, 32, 256 },
     // JEDEC_ID_GIGADEVICE_GD25Q16
-    {0xc84015, 32, 256 },
+    {0xc84015, 512, 16 },
     // End of list
     {0x000000, 0, 0}};
 
@@ -244,6 +246,28 @@ static bool m25p16_readIdentification(void)
         isLargeFlash = true;
         m25p16_performOneByteCommand(W25Q256_INSTRUCTION_ENTER_4BYTE_ADDRESS_MODE);
     }
+
+/*
+    uint8_t command1[2] = { 0x35, 0 };
+    uint8_t in1[2];
+    in1[1]=0x55;
+    busTransfer(busDev, in1, command1, sizeof(command1));
+debug[0] = in1[1];
+
+    uint8_t command2[2] = { 0x5, 0 };
+    uint8_t in2[2];
+    in2[1]=0x55;
+    busTransfer(busDev, in2, command2, sizeof(command2));
+debug[1] = in2[1];
+
+debug[2] = 0x55;
+debug[3] = 0x2;
+*/
+/*
+    uint8_t command2[3] = { 0x1, 0x80, 0 };
+    m25p16_writeEnable();
+    busTransfer(busDev, NULL, command2, sizeof(command2));
+*/
 
     couldBeBusy = true; // Just for luck we'll assume the chip could be busy even though it isn't specced to be
 
