@@ -27,6 +27,8 @@
 #include "common/utils.h"
 
 #include "config/feature.h"
+#include "config/parameter_group.h"
+#include "config/parameter_group_ids.h"
 
 #include "drivers/rx_nrf24l01.h"
 
@@ -35,6 +37,7 @@
 #include "rx/rx.h"
 #include "rx/rx_spi.h"
 #include "rx/eleres.h"
+#include "rx/cc2500_frsky_common.h"
 #include "rx/nrf24_cx10.h"
 #include "rx/nrf24_syma.h"
 #include "rx/nrf24_v202.h"
@@ -46,13 +49,29 @@ static uint16_t rxSpiRcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 STATIC_UNIT_TESTED uint8_t rxSpiPayload[RX_SPI_MAX_PAYLOAD_SIZE];
 STATIC_UNIT_TESTED uint8_t rxSpiNewPacketAvailable; // set true when a new packet is received
 
-typedef void (*protocolInitPtr)(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig);
+typedef void (*protocolInitPtr)(rxRuntimeConfig_t *rxRuntimeConfig);
 typedef rx_spi_received_e (*protocolDataReceivedPtr)(uint8_t *payload, uint16_t *linkQuality);
+typedef rx_spi_received_e (*protocolProcessFrameFnPtr)(uint8_t *payload);
 typedef void (*protocolSetRcDataFromPayloadPtr)(uint16_t *rcData, const uint8_t *payload);
 
 static protocolInitPtr protocolInit;
 static protocolDataReceivedPtr protocolDataReceived;
+static protocolProcessFrameFnPtr protocolProcessFrame;
 static protocolSetRcDataFromPayloadPtr protocolSetRcDataFromPayload;
+
+PG_REGISTER_WITH_RESET_TEMPLATE(rxSpiConfig_t, rxSpiConfig, PG_RX_SPI_CONFIG, 0);
+
+PG_RESET_TEMPLATE(rxSpiConfig_t, rxSpiConfig,
+    .rx_spi_protocol = RX_SPI_DEFAULT_PROTOCOL,
+    .rx_spi_id = 0,
+    .auto_bind = false,
+    .bind_offset = 0,
+    .bind_tx_id = {0, 0, 0},
+    .bind_hop_data =   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+);
 
 STATIC_UNIT_TESTED uint16_t rxSpiReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t channel)
 {
@@ -69,8 +88,7 @@ STATIC_UNIT_TESTED uint16_t rxSpiReadRawRC(const rxRuntimeConfig_t *rxRuntimeCon
 
 STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol)
 {
-    switch (protocol) {
-    default:
+    switch ((uint8_t)protocol) {
 #ifdef USE_RX_V202
     case NRF24RX_V202_250K:
     case NRF24RX_V202_1M:
@@ -116,6 +134,25 @@ STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol)
         protocolSetRcDataFromPayload = eleresSetRcDataFromPayload;
         break;
 #endif
+#if defined(USE_RX_FRSKY_SPI)
+#if defined(USE_RX_FRSKY_SPI_D)
+    case RX_SPI_FRSKY_D:
+#endif
+#if defined(USE_RX_FRSKY_SPI_X)
+    case RX_SPI_FRSKY_X:
+    case RX_SPI_FRSKY_X_LBT:
+    case RX_SPI_FRSKY_X_V2:
+    case RX_SPI_FRSKY_X_LBT_V2:
+        protocolInit = frSkySpiInit;
+        protocolDataReceived = frSkySpiDataReceived;
+        protocolSetRcDataFromPayload = frSkySpiSetRcData;
+        protocolProcessFrame = frSkySpiProcessFrame;
+        break;
+#endif
+#endif
+
+	default:
+        return false;
     }
     return true;
 }
@@ -128,32 +165,67 @@ STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol)
 static uint8_t rxSpiFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
 {
     uint16_t linkQuality = 0;
+    uint8_t status = RX_FRAME_PENDING;
 
-    if (protocolDataReceived(&rxSpiPayload[0], &linkQuality) == RX_SPI_RECEIVED_DATA) {
+    rx_spi_received_e result = protocolDataReceived(rxSpiPayload, &linkQuality);
+
+    if (result & RX_SPI_RECEIVED_DATA) {
         lqTrackerSet(rxRuntimeConfig->lqTracker, linkQuality);
         rxSpiNewPacketAvailable = true;
-        return RX_FRAME_COMPLETE;
+        status = RX_FRAME_COMPLETE;
     }
-    return RX_FRAME_PENDING;
+
+    if (result & RX_SPI_ROCESSING_REQUIRED) {
+        status |= RX_FRAME_PROCESSING_REQUIRED;
+    }
+
+    return status;
 }
 
+
+static bool rxSpiProcessFrame(const rxRuntimeConfig_t *rxRuntimeConfig)
+{
+    UNUSED(rxRuntimeConfig);
+
+    if (protocolProcessFrame) {
+        rx_spi_received_e result = protocolProcessFrame(rxSpiPayload);
+
+        if (result & RX_SPI_RECEIVED_DATA) {
+            rxSpiNewPacketAvailable = true;
+        }
+
+        if (result & RX_SPI_ROCESSING_REQUIRED) {
+            return false;
+        }
+    }
+
+    return true;
+}
+	
 /*
  * Set and initialize the RX protocol
  */
 bool rxSpiInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig)
 {
-    bool ret = false;
+    UNUSED(rxConfig);
 
+    bool ret = false;
     rxSpiDeviceInit();
-    if (rxSpiSetProtocol(rxConfig->rx_spi_protocol)) {
-        protocolInit(rxConfig, rxRuntimeConfig);
+    if (rxSpiSetProtocol(rxSpiConfig()->rx_spi_protocol)) {
+        protocolInit(rxRuntimeConfig);
+
+        if (rxSpiExtiConfigured()) {
+            rxSpiExtiInit();
+        }
+
         ret = true;
     }
 
-    rxRuntimeConfig->rxRefreshRate = 10000;
     rxSpiNewPacketAvailable = false;
+	rxRuntimeConfig->rxRefreshRate = 20000;
     rxRuntimeConfig->rcReadRawFn = rxSpiReadRawRC;
     rxRuntimeConfig->rcFrameStatusFn = rxSpiFrameStatus;
+    rxRuntimeConfig->rcProcessFrameFn = rxSpiProcessFrame;
 
     return ret;
 }
