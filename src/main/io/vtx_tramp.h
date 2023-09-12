@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 // 5.8 GHz
-#define VTX_TRAMP_5G8_BAND_COUNT        5
+#define VTX_TRAMP_5G8_BAND_COUNT        6
 #define VTX_TRAMP_5G8_CHANNEL_COUNT     8
 
 #define VTX_TRAMP_5G8_MAX_POWER_COUNT   5
