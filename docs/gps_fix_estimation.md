@@ -167,10 +167,18 @@
 
 Навігація без GPS fix можлива лише за умов стабільної роботи сенсорів GPS, Compass та Baro. Сенсор GPS повинен працювати і рапортувати 0 супутників, а не зависати через проблеми з залізом. Прошивка не вирішує проблеми "відпадаючих" сенсорів через завади по живленню!
 
-# nav_rth_abort_threshold
-Рекомендується відключити ```nav_rth_abort_threshold```, щоб виключити Emergency lading при спуфінгу GPS.
+# Iншi налаштування
+
+## nav_rth_abort_threshold
+Рекомендується відключити ```nav_rth_abort_threshold```, щоб виключити Emergency landing при спуфінгу GPS. Інакше літак може включити Emergency landing під час RTH, якщо спуфінг різко змінив координати.
 
 ```set nav_rth_abort_threshold = 0```
+
+## nav_disarm_on_landing
+
+Рекомендується відключити ```nav_disarm_on_landing```, щоб виключити Disarm on landing при спуфінгу GPS. Інакше літак може задізармитись в Failsafe mode, якщо спуфінг "заморозив" координати.
+
+```set nav_disarm_on_landing= off```
 
 
 # Links
