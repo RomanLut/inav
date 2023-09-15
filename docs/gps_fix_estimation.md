@@ -1,5 +1,7 @@
 # Опис
 
+**Рекомендується використовувати нову версію: INAV 6.0** https://github.com/RomanLut/inav/blob/6.0.0_gps_fix_estimation/docs/gps_fix_estimation.md
+
 Відео демонстрація:
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/MiOdIXQ3F5w/0.jpg)](https://www.youtube.com/watch?v=MiOdIXQ3F5w)
