@@ -49,7 +49,7 @@
 #include "drivers/serial_tcp.h"
 
 int serialUartIndex = -1;
-char serialPort[16] = ""; 
+int serialPortIndex = -1;
 int serialBaudRate = 115200;
 OptSerialStopBits_e serialStopBits = OPT_SERIAL_STOP_BITS_ONE;  //0:None|1:One|2:OnePointFive|3:Two 
 OptSerialParity_e serialParity = OPT_SERIAL_PARITY_NONE;
@@ -63,15 +63,18 @@ static uint8_t writeBuffer[SERIAL_BUFFER_SIZE];
 static int writeBufferCount;
 
 void serialProxyInit(void) {
-    if (( serialUartIndex == -1 ) || (serialPort[0]==0)) {
+    if (( serialUartIndex == -1 ) || (serialPortIndex==-1)) {
         return;
     }
     connected = false;
 
-    fd = open(serialPort, O_RDWR);
+    char name[20];
+    sprintf( name, "/dev/ttyS%d", serialPortIndex);
+
+    fd = open(name, O_RDWR);
     if (fd == -1)
     {
-        fprintf(stderr, "[SERIALPROXY] Couldn't connect to COM port %s\n", serialPort);
+        fprintf(stderr, "[SERIALPROXY] Can not connect to COM port %s\n", name);
         return;
     }
 
@@ -135,7 +138,7 @@ void serialProxyInit(void) {
     int ret = tcsetattr(fd, TCSANOW, &terminalOptions); 
     if (ret == -1)
     {
-        fprintf(stderr, "[SERIALPROXY] Failed to configure device: %s\n", serialPort);
+        fprintf(stderr, "[SERIALPROXY] Failed to configure device: %s\n", name);
         perror("tcsetattr");
         return;
     }

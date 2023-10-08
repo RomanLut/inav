@@ -48,7 +48,7 @@ typedef enum
 
 
 extern int serialUartIndex;
-extern char serialPort[16]; 
+extern int serialPortIndex; 
 extern int serialBaudRate;
 extern OptSerialStopBits_e serialStopBits;
 extern OptSerialParity_e serialParity;

@@ -203,8 +203,8 @@ void printCmdLineOptions(void)
     fprintf(stderr, "--simip=[ip]                   IP-Address oft the simulator host. If not specified localhost (127.0.0.1) is used.\n");
     fprintf(stderr, "--simport=[port]               Port oft the simulator host.\n");
     fprintf(stderr, "--useimu                       Use IMU sensor data from the simulator instead of using attitude data from the simulator directly (experimental, not recommended).\n");
-    fprintf(stderr, "--serialuart=[uartname]        UART name on which serial receiver is configured, f.e. UART3 or /dev/ttyACM3.\n");
-    fprintf(stderr, "--serialport=[serialportname]  Host serial port name on which serial receiver is connected, f.e. COM3.\n");
+    fprintf(stderr, "--serialuart=[uart]            UART on which serial receiver is configured, f.e. 3 for UART3\n");
+    fprintf(stderr, "--serialport=[serialport]      Host serial port on which serial receiver is connected, f.e. 3 for COM3.\n");
     fprintf(stderr, "--baudrate=[baudrate]          Serial receiver baudrate (default: 115200).\n");
     fprintf(stderr, "--stopbits=[None|One|Two]      Serial receiver stopbits (default: One).\n");
     fprintf(stderr, "--parity=[Even|None|Odd]       Serial receiver parity (default: None).\n");
@@ -282,30 +282,19 @@ void parseArguments(int argc, char *argv[])
                 printVersion();
                 exit(0);
             case '0':
-                if ( (strlen(optarg)>5) || (optarg[0]!='U') || (optarg[1]!='A') || (optarg[2]!='R') || (optarg[3]!='T') || (optarg[4]<'1') || (optarg[4]>'8'))
+                serialUartIndex = atoi(optarg);
+                if ( (serialUartIndex<1) || (serialUartIndex>8) )
                 {
                     fprintf(stderr, "[serialuart] Invalid argument\n.");
                     exit(0);
                 }
-                else
-                {
-                    serialUartIndex = optarg[4]-'1';
-                }
                 break;
             case '1':
-                if ( strlen(optarg)>5)
+                serialPortIndex = atoi(optarg);
+                if ( (serialPortIndex<1) || (serialPortIndex>20) )
                 {
                     fprintf(stderr, "[serialport] Invalid argument\n.");
                     exit(0);
-                }
-                else
-                {
-#if defined(__CYGWIN__)
-                    strcpy(serialPort, "\\\\.\\");
-                    strcat(serialPort, optarg);
-#else
-                    strcpy(serialPort, optarg);
-#endif
                 }
                 break;
             case '2':
