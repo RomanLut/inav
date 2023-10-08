@@ -68,13 +68,17 @@ void serialProxyInit(void) {
     }
     connected = false;
 
-    char name[20];
-    sprintf( name, "/dev/ttyS%d", serialPortIndex);
+    char portName[20];
+#if defined(__CYGWIN__)
+    sprintf(portName, "\\\\.\\COM%d", serialPortIndex );
+#else
+    sprintf(portName, "/dev/ttyACM%d", serialPortIndex);
+#endif
 
-    fd = open(name, O_RDWR);
+    fd = open(portName, O_RDWR);
     if (fd == -1)
     {
-        fprintf(stderr, "[SERIALPROXY] Can not connect to COM port %s\n", name);
+        fprintf(stderr, "[SERIALPROXY] Can not connect to COM port %s\n", portName);
         return;
     }
 
@@ -138,7 +142,7 @@ void serialProxyInit(void) {
     int ret = tcsetattr(fd, TCSANOW, &terminalOptions); 
     if (ret == -1)
     {
-        fprintf(stderr, "[SERIALPROXY] Failed to configure device: %s\n", name);
+        fprintf(stderr, "[SERIALPROXY] Failed to configure device: %s\n", portName);
         perror("tcsetattr");
         return;
     }
