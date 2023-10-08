@@ -203,7 +203,7 @@ void printCmdLineOptions(void)
     fprintf(stderr, "--simip=[ip]                   IP-Address oft the simulator host. If not specified localhost (127.0.0.1) is used.\n");
     fprintf(stderr, "--simport=[port]               Port oft the simulator host.\n");
     fprintf(stderr, "--useimu                       Use IMU sensor data from the simulator instead of using attitude data from the simulator directly (experimental, not recommended).\n");
-    fprintf(stderr, "--serialuart=[uartname]        UART name on which serial receiver is configured, f.e. UART3.\n");
+    fprintf(stderr, "--serialuart=[uartname]        UART name on which serial receiver is configured, f.e. UART3 or /dev/ttyACM3.\n");
     fprintf(stderr, "--serialport=[serialportname]  Host serial port name on which serial receiver is connected, f.e. COM3.\n");
     fprintf(stderr, "--baudrate=[baudrate]          Serial receiver baudrate (default: 115200).\n");
     fprintf(stderr, "--stopbits=[None|One|Two]      Serial receiver stopbits (default: One).\n");
@@ -300,7 +300,12 @@ void parseArguments(int argc, char *argv[])
                 }
                 else
                 {
+#if defined(__CYGWIN__)
+                    strcpy(serialPort, "\\\\.\\");
+                    strcat(serialPort, optarg);
+#else
                     strcpy(serialPort, optarg);
+#endif
                 }
                 break;
             case '2':
