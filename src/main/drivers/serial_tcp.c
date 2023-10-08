@@ -118,6 +118,24 @@ static tcpPort_t *tcpReConfigure(tcpPort_t *port, uint32_t id)
     return port;
 }
 
+void tcpReceiveBytes( tcpPort_t *port, const uint8_t* buffer, ssize_t recvSize ) {
+    for (ssize_t i = 0; i < recvSize; i++) {
+
+        if (port->serialPort.rxCallback) {
+            port->serialPort.rxCallback((uint16_t)buffer[i], port->serialPort.rxCallbackData);
+        } else {
+            pthread_mutex_lock(&port->receiveMutex);
+            port->serialPort.rxBuffer[port->serialPort.rxBufferHead] = buffer[i];
+            port->serialPort.rxBufferHead = (port->serialPort.rxBufferHead + 1) % port->serialPort.rxBufferSize;
+            pthread_mutex_unlock(&port->receiveMutex);
+        }
+    }
+}
+
+void tcpReceiveBytesEx( int portIndex, const uint8_t* buffer, ssize_t recvSize ) {
+    tcpReceiveBytes( &tcpPorts[portIndex], buffer, recvSize );
+}
+
 int tcpReceive(tcpPort_t *port)
 {
     char addrbuf[IPADDRESS_PRINT_BUFLEN];
@@ -162,21 +180,11 @@ int tcpReceive(tcpPort_t *port)
         return 0;
     }
 
-    for (ssize_t i = 0; i < recvSize; i++) {
-
-        if (port->serialPort.rxCallback) {
-            port->serialPort.rxCallback((uint16_t)buffer[i], port->serialPort.rxCallbackData);
-        } else {
-            pthread_mutex_lock(&port->receiveMutex);
-            port->serialPort.rxBuffer[port->serialPort.rxBufferHead] = buffer[i];
-            port->serialPort.rxBufferHead = (port->serialPort.rxBufferHead + 1) % port->serialPort.rxBufferSize;
-            pthread_mutex_unlock(&port->receiveMutex);
-        }
-    }
-
     if (recvSize < 0) {
         recvSize = 0;
     }
+
+    tcpReceiveBytes( port, buffer, recvSize );
 
     return (int)recvSize;
 }
@@ -261,6 +269,10 @@ uint32_t tcpTotalRxBytesWaiting(const serialPort_t *instance)
     pthread_mutex_unlock(&port->receiveMutex);
 
     return count;
+}
+
+uint32_t tcpRXBytesFree(int portIndex) {
+    return tcpPorts[portIndex].serialPort.rxBufferSize - tcpTotalRxBytesWaiting( &tcpPorts[portIndex].serialPort);
 }
 
 uint32_t tcpTotalTxBytesFree(const serialPort_t *instance)
