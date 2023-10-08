@@ -185,7 +185,7 @@ OptSerialStopBits_e parseStopBits(const char* optarg){
 OptSerialParity_e parseParity(const char* optarg){
     if ( strcmp(optarg, "Even") == 0 ) {
         return OPT_SERIAL_PARITY_EVEN;
-    } else if ( strcmp(optarg, "NONE") == 0 ) {
+    } else if ( strcmp(optarg, "None") == 0 ) {
         return OPT_SERIAL_PARITY_NONE;
     } else if ( strcmp(optarg, "Odd") == 0 ) {
         return OPT_SERIAL_PARITY_ODD;

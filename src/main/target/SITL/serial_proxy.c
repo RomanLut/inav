@@ -136,6 +136,7 @@ void serialProxyInit(void) {
     if (ret == -1)
     {
         fprintf(stderr, "[SERIALPROXY] Failed to configure device: %s\n", serialPort);
+        perror("tcsetattr");
         return;
     }
 
