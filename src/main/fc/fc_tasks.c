@@ -99,10 +99,6 @@ void taskHandleSerial(timeUs_t currentTimeUs)
 {
     UNUSED(currentTimeUs);
 
-#if defined(SITL_BUILD)
-    serialProxyProcess();
-#endif
-
     // in cli mode, all serial stuff goes to here. enter cli mode by sending #
     if (cliMode) {
         cliProcess();

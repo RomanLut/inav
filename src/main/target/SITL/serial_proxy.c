@@ -269,7 +269,7 @@ bool serialProxyIsConnected(void) {
     return connected;
 }
 
-void serialProxyflushOut(void){
+void serialProxyflushOut(void) {
     if (writeBufferCount > 0) {
 
 #if defined(__CYGWIN__)
@@ -297,14 +297,23 @@ extern void serialProxyProcess(void) {
 
     unsigned char buf[SERIAL_BUFFER_SIZE];
 
-    uint32_t avail = tcpRXBytesFree(serialUartIndex);
+    uint32_t avail = tcpRXBytesFree(serialUartIndex-1);
     if ( avail == 0 ) return;
     if (avail > SERIAL_BUFFER_SIZE) avail = SERIAL_BUFFER_SIZE;
 
     int count = serialProxyReadData(buf, avail);
     if (count == 0) return;
 
-    tcpReceiveBytesEx( serialUartIndex, buf, count);
+    tcpReceiveBytesEx( serialUartIndex-1, buf, count);
+    serialProxyflushOut();
+}
+
+int serialProxyTXFree(void) {
+    return SERIAL_BUFFER_SIZE - writeBufferCount;
+}
+
+bool serialProxyTXEmpty(void) {
+    return writeBufferCount == 0;
 }
 
 #endif

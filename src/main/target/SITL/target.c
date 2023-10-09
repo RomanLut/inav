@@ -385,6 +385,7 @@ void systemReset(void)
 #else
     closefrom(3);
 #endif
+    serialProxyClose();
     execvp(c_argv[0], c_argv); // restart
 }
 

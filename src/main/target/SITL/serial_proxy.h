@@ -47,8 +47,8 @@ typedef enum
 } OptSerialParity_e;
 
 
-extern int serialUartIndex;
-extern int serialPortIndex; 
+extern int serialUartIndex; ///1 for UART1
+extern int serialPortIndex;  // 1 for COM1, 0 for /dev/tyACM0
 extern int serialBaudRate;
 extern OptSerialStopBits_e serialStopBits;
 extern OptSerialParity_e serialParity;
@@ -56,5 +56,10 @@ extern bool serialFCProxy;
 
 extern void serialProxyInit(void);
 extern void serialProxyProcess(void);
+extern void serialProxyClose(void);
+extern int serialProxyTXFree(void);
+extern bool serialProxyTXEmpty(void);
+extern bool serialProxyIsConnected(void);
+extern bool serialProxyWriteData(unsigned char *buffer, unsigned int nbChar);
 
 #endif

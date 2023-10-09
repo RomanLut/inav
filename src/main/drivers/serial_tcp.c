@@ -43,6 +43,7 @@
 
 #include "drivers/serial.h"
 #include "drivers/serial_tcp.h"
+#include "target/SITL/serial_proxy.h"
 
 static const struct serialPortVTable tcpVTable[];
 static tcpPort_t tcpPorts[SERIAL_PORT_COUNT];
@@ -248,9 +249,23 @@ void tcpWritBuf(serialPort_t *instance, const void *data, int count)
     send(port->clientSocketFd, data, count, 0);
 }
 
+int getTcpPortIndex(const serialPort_t *instance) {
+    for (int i = 0; i < SERIAL_PORT_COUNT; i++) {
+        if ( &(tcpPorts[i].serialPort) == instance) return i;
+    }
+    return -1;
+}
+
 void tcpWrite(serialPort_t *instance, uint8_t ch)
 {
     tcpWritBuf(instance, (void*)&ch, 1);
+
+    int index = getTcpPortIndex(instance);
+    if ( index == (serialUartIndex-1) && serialProxyIsConnected()) {
+        if  (!serialProxyWriteData( (unsigned char *)&ch, 1) ){
+            fprintf(stderr, "[SERIALPROXY] Can't write data.\n");
+        }  
+    } 
 }
 
 uint32_t tcpTotalRxBytesWaiting(const serialPort_t *instance)
@@ -277,15 +292,24 @@ uint32_t tcpRXBytesFree(int portIndex) {
 
 uint32_t tcpTotalTxBytesFree(const serialPort_t *instance)
 {
-    UNUSED(instance);
-    return TCP_MAX_PACKET_SIZE;
+    int index = getTcpPortIndex(instance);
+    if ( index == (serialUartIndex-1) && serialProxyIsConnected()) {
+        return serialProxyTXFree();
+    } else {
+        return TCP_MAX_PACKET_SIZE;
+    }
 }
 
 bool isTcpTransmitBufferEmpty(const serialPort_t *instance)
 {
     UNUSED(instance);
 
-    return true;
+    int index = getTcpPortIndex(instance);
+    if ( index == (serialUartIndex-1) && serialProxyIsConnected()) {
+        return serialProxyTXEmpty();
+    } else {
+        return true;
+    }
 }
 
 bool tcpIsConnected(const serialPort_t *instance)
