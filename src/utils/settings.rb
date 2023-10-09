@@ -34,8 +34,8 @@ require 'yaml'
 
 require_relative 'compiler'
 
-DEBUG = true
-INFO = true
+DEBUG = false
+INFO = false
 
 SETTINGS_WORDS_BITS_PER_CHAR = 5
 
