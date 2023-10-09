@@ -262,8 +262,7 @@ void tcpWrite(serialPort_t *instance, uint8_t ch)
 
     int index = getTcpPortIndex(instance);
     if ( index == (serialUartIndex-1) && serialProxyIsConnected()) {
-        if  (!serialProxyWriteData( (unsigned char *)&ch, 1) ){
-            fprintf(stderr, "[SERIALPROXY] Can't write data.\n");
+            serialProxyWriteData( (unsigned char *)&ch, 1) )
         }  
     } 
 }
@@ -292,24 +291,14 @@ uint32_t tcpRXBytesFree(int portIndex) {
 
 uint32_t tcpTotalTxBytesFree(const serialPort_t *instance)
 {
-    int index = getTcpPortIndex(instance);
-    if ( index == (serialUartIndex-1) && serialProxyIsConnected()) {
-        return serialProxyTXFree();
-    } else {
-        return TCP_MAX_PACKET_SIZE;
-    }
+    UNUSED(instance);
+    return TCP_MAX_PACKET_SIZE;
 }
 
 bool isTcpTransmitBufferEmpty(const serialPort_t *instance)
 {
     UNUSED(instance);
-
-    int index = getTcpPortIndex(instance);
-    if ( index == (serialUartIndex-1) && serialProxyIsConnected()) {
-        return serialProxyTXEmpty();
-    } else {
-        return true;
-    }
+    return true;
 }
 
 bool tcpIsConnected(const serialPort_t *instance)

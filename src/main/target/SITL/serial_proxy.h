@@ -57,9 +57,6 @@ extern bool serialFCProxy;
 extern void serialProxyInit(void);
 extern void serialProxyProcess(void);
 extern void serialProxyClose(void);
-extern int serialProxyTXFree(void);
-extern bool serialProxyTXEmpty(void);
-extern bool serialProxyIsConnected(void);
 extern bool serialProxyWriteData(unsigned char *buffer, unsigned int nbChar);
 
 #endif

@@ -64,8 +64,6 @@ static HANDLE hSerial;
 static int fd;
 #endif
 static bool connected = false;
-static uint8_t writeBuffer[SERIAL_BUFFER_SIZE];
-static int writeBufferCount;
 
 void serialProxyInit(void) {
     if (( serialUartIndex == -1 ) || (serialPortIndex==-1)) {
@@ -216,8 +214,6 @@ void serialProxyInit(void) {
     connected = true;
 
     fprintf(stderr, "[SOCKET] connected %s to UART%d\n", portName, serialUartIndex);
-
-    writeBufferCount = 0;
 }
 
 void serialProxyClose(void) {
@@ -229,7 +225,6 @@ void serialProxyClose(void) {
         close(fd);
 #endif
     }
-    writeBufferCount = 0;
 }
 
 int serialProxyReadData(unsigned char *buffer, unsigned int nbChar) {
@@ -259,40 +254,25 @@ int serialProxyReadData(unsigned char *buffer, unsigned int nbChar) {
 bool serialProxyWriteData(unsigned char *buffer, unsigned int nbChar) {
   if (!connected) return false;
 
-    if (writeBufferCount + nbChar < SERIAL_BUFFER_SIZE) {
-        for (unsigned int i = 0; i < nbChar; i++) {
-            writeBuffer[writeBufferCount++] = *(buffer++);
+#if defined(__CYGWIN__)
+        COMSTAT status;
+        DWORD errors;
+        DWORD bytesSent;
+        if (!WriteFile(hSerial, (void *)buffer, nbChar, &bytesSent, 0)) {
+            ClearCommError(hSerial, &errors, &status);
+            return false;
         }
-        return true;
-    } else {
-        return false;
-    }
+#else
+        ssize_t l = write(fd, buffer, nbChar);
+        if ( l!= nbChar ) {
+            reurn false;
+        }
+#endif    
+    return true;
 }
 
 bool serialProxyIsConnected(void) {
     return connected;
-}
-
-void serialProxyflushOut(void) {
-    if (writeBufferCount > 0) {
-
-#if defined(__CYGWIN__)
-        COMSTAT status;
-        DWORD errors;
-        DWORD bytesSend;
-        if (!WriteFile(hSerial, (void *)writeBuffer, writeBufferCount, &bytesSend, 0)) {
-            ClearCommError(hSerial, &errors, &status);
-            return;
-        }
-#else
-        ssize_t l = write(fd, writeBuffer, writeBufferCount);
-        if ( l!= writeBufferCount )
-        {
-            fprintf(stderr, "[SERIALPROXY] ERROR: unable to write to serial port\n");
-        }
-#endif    
-        writeBufferCount = 0;
-    }
 }
 
 extern void serialProxyProcess(void) {
@@ -309,15 +289,6 @@ extern void serialProxyProcess(void) {
     if (count == 0) return;
 
     tcpReceiveBytesEx( serialUartIndex-1, buf, count);
-    serialProxyflushOut();
-}
-
-int serialProxyTXFree(void) {
-    return SERIAL_BUFFER_SIZE - writeBufferCount;
-}
-
-bool serialProxyTXEmpty(void) {
-    return writeBufferCount == 0;
 }
 
 #endif
