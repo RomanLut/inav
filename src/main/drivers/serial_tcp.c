@@ -262,7 +262,7 @@ void tcpWrite(serialPort_t *instance, uint8_t ch)
 
     int index = getTcpPortIndex(instance);
     if ( index == (serialUartIndex-1) && serialProxyIsConnected()) {
-            serialProxyWriteData( (unsigned char *)&ch, 1)
+            serialProxyWriteData( (unsigned char *)&ch, 1);
         }  
     } 
 }
