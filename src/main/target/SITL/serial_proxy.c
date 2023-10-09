@@ -58,6 +58,7 @@ bool serialFCProxy = false;
 #define SERIAL_BUFFER_SIZE 128
 
 #if defined(__CYGWIN__)
+#include <windows.h>
 static HANDLE hSerial;
 #else
 static int fd;
