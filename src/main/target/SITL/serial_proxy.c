@@ -214,6 +214,9 @@ void serialProxyInit(void) {
     }
 #endif
     connected = true;
+
+    fprintf(stderr, "[SOCKET] connected %s to UART%d\n", portName, serialUartIndex);
+
     writeBufferCount = 0;
 }
 
@@ -226,6 +229,7 @@ void serialProxyClose(void) {
         close(fd);
 #endif
     }
+    writeBufferCount = 0;
 }
 
 int serialProxyReadData(unsigned char *buffer, unsigned int nbChar) {
