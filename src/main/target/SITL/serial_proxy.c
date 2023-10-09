@@ -57,7 +57,11 @@ bool serialFCProxy = false;
 
 #define SERIAL_BUFFER_SIZE 128
 
+#if defined(__CYGWIN__)
+static HANDLE hSerial;
+#else
 static int fd;
+#endif
 static bool connected = false;
 static uint8_t writeBuffer[SERIAL_BUFFER_SIZE];
 static int writeBufferCount;
@@ -71,9 +75,70 @@ void serialProxyInit(void) {
     char portName[20];
 #if defined(__CYGWIN__)
     sprintf(portName, "\\\\.\\COM%d", serialPortIndex );
+
+    hSerial = CreateFile(portName,
+        GENERIC_READ | GENERIC_WRITE,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL);
+
+    if (hSerial == INVALID_HANDLE_VALUE) {
+        if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+            fprintf(stderr, "[SERIALPROXY] ERROR: COM port was not attached. Reason: %s not available.", portName);
+        } else {
+            fprintf(stderr, "[SERIALPROXY] Cand not connect to COM port, unknown error.");
+        }
+        return;
+    } else {
+        DCB dcbSerialParams = { 0 };
+        if (!GetCommState(this->hSerial, &dcbSerialParams)) {
+            fprintf(stderr, "[SERIALPROXY] failed to get current serial parameters!");
+        } else {
+            dcbSerialParams.BaudRate = serialBaudRate;
+            dcbSerialParams.ByteSize = 8;
+
+            switch (serialStopBits) {
+                case OPT_SERIAL_STOP_BITS_ONE:
+                    dcbSerialParams.StopBits = ONESTOPBIT;
+                    break;
+                case OPT_SERIAL_STOP_BITS_TWO:
+                    dcbSerialParams.StopBits = TWOSTOPBITS;
+                    break;
+                case OPT_SERIAL_STOP_BITS_INVALID:
+                    break;
+            }
+
+            switch (serialParity) {
+                case OPT_SERIAL_PARITY_EVEN:
+                    dcbSerialParams.Parity = EVENPARITY;
+                    break;
+                case OPT_SERIAL_PARITY_NONE:
+                    dcbSerialParams.Parity = NOPARITY;
+                    break;
+                case OPT_SERIAL_PARITY_ODD:
+                    dcbSerialParams.Parity = ODDPARITY;
+                    break;
+                case OPT_SERIAL_PARITY_INVALID:
+                    break;
+            }    
+
+            if (!SetCommState(hSerial, &dcbSerialParams)) {
+                fprintf(stderr, "[SERIALPROXY] ALERT: Could not set Serial Port parameters\n");
+            } else {
+                COMMTIMEOUTS comTimeOut;
+                comTimeOut.ReadIntervalTimeout = MAXDWORD;
+                comTimeOut.ReadTotalTimeoutMultiplier = 0;
+                comTimeOut.ReadTotalTimeoutConstant = 0;
+                comTimeOut.WriteTotalTimeoutMultiplier = 0;
+                comTimeOut.WriteTotalTimeoutConstant = 300;
+                SetCommTimeouts(hSerial, &comTimeOut);
+            }
+        }
+    }
 #else
     sprintf(portName, "/dev/ttyACM%d", serialPortIndex);
-#endif
 
     fd = open(portName, O_RDWR);
     if (fd == -1)
@@ -146,7 +211,7 @@ void serialProxyInit(void) {
         perror("tcsetattr");
         return;
     }
-
+#endif
     connected = true;
     writeBufferCount = 0;
 }
