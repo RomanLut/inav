@@ -228,8 +228,7 @@ void serialProxyClose(void) {
     }
 }
 
-int serialProxyReadData(unsigned char *buffer, unsigned int nbChar)
-{
+int serialProxyReadData(unsigned char *buffer, unsigned int nbChar) {
     if (!connected) return 0;
 
 #if defined(__CYGWIN__)
@@ -244,10 +243,9 @@ int serialProxyReadData(unsigned char *buffer, unsigned int nbChar)
         if (ReadFile(hSerial, buffer, toRead, &bytesRead, NULL) && (bytesRead != 0)) {
             return bytesRead;
         }
-        return 0;
     }
+    return 0;
 #else
-
     if (nbChar == 0) return 0;
     int bytesRead = read(fd, buffer, nbChar);
     return bytesRead;
