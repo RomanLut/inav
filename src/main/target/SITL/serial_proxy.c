@@ -94,7 +94,7 @@ void serialProxyInit(void) {
         return;
     } else {
         DCB dcbSerialParams = { 0 };
-        if (!GetCommState(this->hSerial, &dcbSerialParams)) {
+        if (!GetCommState(hSerial, &dcbSerialParams)) {
             fprintf(stderr, "[SERIALPROXY] failed to get current serial parameters!");
         } else {
             dcbSerialParams.BaudRate = serialBaudRate;
@@ -220,7 +220,11 @@ void serialProxyInit(void) {
 void serialProxyClose(void) {
     if (connected) {
         connected = false;
+#if defined(__CYGWIN__)
+        CloseHandle(hSerial);
+#else
         close(fd);
+#endif
     }
 }
 
@@ -228,9 +232,26 @@ int serialProxyReadData(unsigned char *buffer, unsigned int nbChar)
 {
     if (!connected) return 0;
 
+#if defined(__CYGWIN__)
+    COMSTAT status;
+    DWORD errors;
+    DWORD bytesRead;
+
+    ClearCommError(hSerial, &errors, &status);
+    if (status.cbInQue>0) {
+        unsigned int toRead = (status.cbInQue>nbChar) ? nbChar : status.cbInQue;
+
+        if (ReadFile(hSerial, buffer, toRead, &bytesRead, NULL) && (bytesRead != 0)) {
+            return bytesRead;
+        }
+        return 0;
+    }
+#else
+
     if (nbChar == 0) return 0;
     int bytesRead = read(fd, buffer, nbChar);
     return bytesRead;
+#endif    
 }
 
 bool serialProxyWriteData(unsigned char *buffer, unsigned int nbChar) {
@@ -252,11 +273,22 @@ bool serialProxyIsConnected(void) {
 
 void serialProxyflushOut(void){
     if (writeBufferCount > 0) {
+
+#if defined(__CYGWIN__)
+        COMSTAT status;
+        DWORD errors;
+        DWORD bytesSend;
+        if (!WriteFile(hSerial, (void *)writeBuffer, writeBufferCount, &bytesSend, 0)) {
+            ClearCommError(hSerial, &errors, &status);
+            return;
+        }
+#else
         ssize_t l = write(fd, writeBuffer, writeBufferCount);
         if ( l!= writeBufferCount )
         {
             fprintf(stderr, "[SERIALPROXY] ERROR: unable to write to serial port\n");
         }
+#endif    
         writeBufferCount = 0;
     }
 }
