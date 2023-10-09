@@ -79,6 +79,7 @@ static void rcdeviceCameraControlProcess(void)
             }
 
             uint8_t behavior = RCDEVICE_PROTOCOL_CAM_CTRL_UNKNOWN_CAMERA_OPERATION;
+            uint8_t behavior1 = RCDEVICE_PROTOCOL_CAM_CTRL_UNKNOWN_CAMERA_OPERATION;
             switch (i) {
             case BOXCAMERA1:
                 if (isFeatureSupported(RCDEVICE_PROTOCOL_FEATURE_SIMULATE_WIFI_BUTTON)) {
@@ -88,11 +89,13 @@ static void rcdeviceCameraControlProcess(void)
                     if (!ARMING_FLAG(ARMED)) {
                         behavior = RCDEVICE_PROTOCOL_CAM_CTRL_SIMULATE_WIFI_BTN;
                     }
+                    behavior1 = RCDEVICE_PROTOCOL_CAM_CTRL_SIMULATE_WIFI_BTN;
                 }
                 break;
             case BOXCAMERA2:
                 if (isFeatureSupported(RCDEVICE_PROTOCOL_FEATURE_SIMULATE_POWER_BUTTON)) {
                     behavior = RCDEVICE_PROTOCOL_CAM_CTRL_SIMULATE_POWER_BTN;
+                    behavior1 = RCDEVICE_PROTOCOL_CAM_CTRL_SIMULATE_POWER_BTN;
                 }
                 break;
             case BOXCAMERA3:
@@ -101,33 +104,32 @@ static void rcdeviceCameraControlProcess(void)
                     if (!ARMING_FLAG(ARMED)) {
                         behavior = RCDEVICE_PROTOCOL_CAM_CTRL_CHANGE_MODE;
                     }
+                    behavior1 = RCDEVICE_PROTOCOL_CAM_CTRL_CHANGE_MODE;
                 }
                 break;
             default:
                 break;
             }
-            if (behavior != RCDEVICE_PROTOCOL_CAM_CTRL_UNKNOWN_CAMERA_OPERATION) {
-                if ( rcdeviceIsEnabled() ) {
-                    runcamDeviceSimulateCameraButton(camDevice, behavior);
-                }
-#ifdef USE_LED_STRIP
-                else if (osdJoystickEnabled()) {
-
-                    switch (behavior) {
-                        case RCDEVICE_PROTOCOL_CAM_CTRL_SIMULATE_WIFI_BTN:
-                            osdJoystickSimulate5KeyButtonPress(RCDEVICE_CAM_KEY_ENTER);
-                            break;
-                        case RCDEVICE_PROTOCOL_CAM_CTRL_SIMULATE_POWER_BTN:
-                            osdJoystickSimulate5KeyButtonPress(RCDEVICE_CAM_KEY_UP);
-                            break;
-                        case RCDEVICE_PROTOCOL_CAM_CTRL_CHANGE_MODE:
-                            osdJoystickSimulate5KeyButtonPress(RCDEVICE_CAM_KEY_DOWN);
-                            break;
-                    }
-                }
-#endif
+            if ((behavior != RCDEVICE_PROTOCOL_CAM_CTRL_UNKNOWN_CAMERA_OPERATION) && rcdeviceIsEnabled()) {
+                runcamDeviceSimulateCameraButton(camDevice, behavior);
                 switchStates[switchIndex].isActivated = true;
             }
+#ifdef USE_LED_STRIP
+            else if ((behavior1 != RCDEVICE_PROTOCOL_CAM_CTRL_UNKNOWN_CAMERA_OPERATION) && osdJoystickEnabled()) {
+                switch (behavior1) {
+                    case RCDEVICE_PROTOCOL_CAM_CTRL_SIMULATE_WIFI_BTN:
+                        osdJoystickSimulate5KeyButtonPress(RCDEVICE_CAM_KEY_ENTER);
+                        break;
+                    case RCDEVICE_PROTOCOL_CAM_CTRL_SIMULATE_POWER_BTN:
+                        osdJoystickSimulate5KeyButtonPress(RCDEVICE_CAM_KEY_UP);
+                        break;
+                    case RCDEVICE_PROTOCOL_CAM_CTRL_CHANGE_MODE:
+                        osdJoystickSimulate5KeyButtonPress(RCDEVICE_CAM_KEY_DOWN);
+                        break;
+                }
+                switchStates[switchIndex].isActivated = true;
+            }
+#endif
         } else {
 #ifdef USE_LED_STRIP
             if (osdJoystickEnabled() && switchStates[switchIndex].isActivated) {
