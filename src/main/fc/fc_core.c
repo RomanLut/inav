@@ -95,10 +95,6 @@
 #include "common/vector.h"
 #include "programming/pid.h"
 
-#if defined(SITL_BUILD)
-#include "target/SITL/serial_proxy.h"
-#endif
-
 // June 2013     V2.2-dev
 
 enum {
@@ -862,9 +858,6 @@ static void applyThrottleTiltCompensation(void)
 
 void taskMainPidLoop(timeUs_t currentTimeUs)
 {
-#if defined(SITL_BUILD)
-    //serialProxyProcess();
-#endif
 
     cycleTime = getTaskDeltaTime(TASK_SELF);
     dT = (float)cycleTime * 0.000001f;

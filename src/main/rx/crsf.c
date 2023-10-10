@@ -156,7 +156,6 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *rxCallbackData)
     if (crsfFramePosition == 0) {
         crsfFrameStartAt = now;
     }
-
     // assume frame is 5 bytes long until we have received the frame length
     // full frame length includes the length of the address and framelength fields
     const int fullFrameLength = crsfFramePosition < 3 ? 5 : crsfFrame.frame.frameLength + CRSF_FRAME_LENGTH_ADDRESS + CRSF_FRAME_LENGTH_FRAMELENGTH;
@@ -166,16 +165,11 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *rxCallbackData)
         crsfFrameDone = crsfFramePosition < fullFrameLength ? false : true;
         if (crsfFrameDone) {
             crsfFramePosition = 0;
-                if (crsfFrameCRC() == crsfFrame.bytes[fullFrameLength - 1]) {
-                }
-
-
             if (crsfFrame.frame.type != CRSF_FRAMETYPE_RC_CHANNELS_PACKED) {
                 const uint8_t crc = crsfFrameCRC();
                 if (crc == crsfFrame.bytes[fullFrameLength - 1]) {
                     switch (crsfFrame.frame.type)
                     {
-
 #if defined(USE_MSP_OVER_TELEMETRY)
                         case CRSF_FRAMETYPE_MSP_REQ:
                         case CRSF_FRAMETYPE_MSP_WRITE: {
@@ -227,7 +221,6 @@ STATIC_UNIT_TESTED uint8_t crsfFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
             crsfChannelData[13] = rcChannels->chan13;
             crsfChannelData[14] = rcChannels->chan14;
             crsfChannelData[15] = rcChannels->chan15;
-
             return RX_FRAME_COMPLETE;
         }
         else if (crsfFrame.frame.type == CRSF_FRAMETYPE_LINK_STATISTICS) {
