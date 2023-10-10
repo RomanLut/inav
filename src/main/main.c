@@ -70,6 +70,9 @@ int main(void)
     loopbackInit();
 
     while (true) {
+#if defined(SITL_BUILD)
+        serialProxyProcess();
+#endif
         scheduler();
         processLoopback();
     }

@@ -64,6 +64,7 @@ static HANDLE hSerial;
 static int fd;
 #endif
 static bool connected = false;
+static bool started = false;
 
 void serialProxyInit(void) {
     if (( serialUartIndex == -1 ) || (serialPortIndex==-1)) {
@@ -216,6 +217,10 @@ void serialProxyInit(void) {
     fprintf(stderr, "[SERIALPROXY] connected %s to UART%d\n", portName, serialUartIndex);
 }
 
+void serialProxyStart(void) {
+    started = true;
+}
+
 void serialProxyClose(void) {
     if (connected) {
         connected = false;
@@ -224,6 +229,7 @@ void serialProxyClose(void) {
 #else
         close(fd);
 #endif
+    started = false;
     }
 }
 
@@ -276,6 +282,7 @@ bool serialProxyIsConnected(void) {
 
 extern void serialProxyProcess(void) {
 
+    if (!started) return;
     if (( serialUartIndex == -1 ) || (!connected)) return;
 
     unsigned char buf[SERIAL_BUFFER_SIZE];

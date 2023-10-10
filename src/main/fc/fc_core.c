@@ -863,7 +863,7 @@ static void applyThrottleTiltCompensation(void)
 void taskMainPidLoop(timeUs_t currentTimeUs)
 {
 #if defined(SITL_BUILD)
-    serialProxyProcess();
+    //serialProxyProcess();
 #endif
 
     cycleTime = getTaskDeltaTime(TASK_SELF);

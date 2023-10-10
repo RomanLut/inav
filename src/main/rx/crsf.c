@@ -19,7 +19,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "platform.h"
 #ifdef USE_SERIALRX_CRSF
@@ -42,11 +41,7 @@
 #include "rx/crsf.h"
 
 #include "telemetry/crsf.h"
-#if !defined(SITL_BUILD)
 #define CRSF_TIME_NEEDED_PER_FRAME_US   1100 // 700 ms + 400 ms for potential ad-hoc request
-#else
-#define CRSF_TIME_NEEDED_PER_FRAME_US   20000
-#endif
 #define CRSF_TIME_BETWEEN_FRAMES_US     6667 // At fastest, frames are sent by the transmitter every 6.667 milliseconds, 150 Hz
 
 #define CRSF_DIGITAL_CHANNEL_MIN 172
@@ -171,9 +166,7 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *rxCallbackData)
         crsfFrameDone = crsfFramePosition < fullFrameLength ? false : true;
         if (crsfFrameDone) {
             crsfFramePosition = 0;
-        fprintf(stderr, "%d\n", crsfFrame.frame.type);
                 if (crsfFrameCRC() == crsfFrame.bytes[fullFrameLength - 1]) {
-        fprintf(stderr, "correct - %d\n", crsfFrame.frame.type);
                 }
 
 
