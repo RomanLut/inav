@@ -49,7 +49,7 @@
 #include "drivers/serial_tcp.h"
 
 int serialUartIndex = -1;
-int serialPortIndex = -1;
+char serialPort[64] = "";
 int serialBaudRate = 115200;
 OptSerialStopBits_e serialStopBits = OPT_SERIAL_STOP_BITS_ONE;  //0:None|1:One|2:OnePointFive|3:Two 
 OptSerialParity_e serialParity = OPT_SERIAL_PARITY_NONE;
@@ -67,14 +67,14 @@ static bool connected = false;
 static bool started = false;
 
 void serialProxyInit(void) {
-    if (( serialUartIndex == -1 ) || (serialPortIndex==-1)) {
+    if ( strlen(serialPort) < 1) {
         return;
     }
     connected = false;
 
-    char portName[20];
+    char portName[64+20];
 #if defined(__CYGWIN__)
-    sprintf(portName, "\\\\.\\COM%d", serialPortIndex );
+    sprintf(portName, "\\\\.\\%s", serialPort);
 
     hSerial = CreateFile(portName,
         GENERIC_READ | GENERIC_WRITE,
@@ -138,7 +138,11 @@ void serialProxyInit(void) {
         }
     }
 #else
-    sprintf(portName, "/dev/ttyACM%d", serialPortIndex);
+    if ( serialPort[0] != '/') {
+        sprintf(portName, "/%s", serialPort);
+    } else {
+        sprintf(portName, "%s", serialPort);
+    }
 
     fd = open(portName, O_RDWR);
     if (fd == -1)

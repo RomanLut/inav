@@ -204,7 +204,7 @@ void printCmdLineOptions(void)
     fprintf(stderr, "--simport=[port]               Port oft the simulator host.\n");
     fprintf(stderr, "--useimu                       Use IMU sensor data from the simulator instead of using attitude data from the simulator directly (experimental, not recommended).\n");
     fprintf(stderr, "--serialuart=[uart]            UART on which serial receiver is configured, f.e. 3 for UART3\n");
-    fprintf(stderr, "--serialport=[serialport]      Host serial port on which serial receiver is connected, f.e. 3 for COM3.\n");
+    fprintf(stderr, "--serialport=[serialport]      Host's serial port on which serial receiver is connected, f.e. COM3, /dev/ttyACM3");
     fprintf(stderr, "--baudrate=[baudrate]          Serial receiver baudrate (default: 115200).\n");
     fprintf(stderr, "--stopbits=[None|One|Two]      Serial receiver stopbits (default: One).\n");
     fprintf(stderr, "--parity=[Even|None|Odd]       Serial receiver parity (default: None).\n");
@@ -283,18 +283,17 @@ void parseArguments(int argc, char *argv[])
                 exit(0);
             case '0':
                 serialUartIndex = atoi(optarg);
-                if ( (serialUartIndex<1) || (serialUartIndex>8) )
-                {
+                if ( (serialUartIndex<1) || (serialUartIndex>8) ) {
                     fprintf(stderr, "[serialuart] Invalid argument\n.");
                     exit(0);
                 }
                 break;
             case '1':
-                serialPortIndex = atoi(optarg);
-                if ( (serialPortIndex<1) || (serialPortIndex>20) )
-                {
+                if ( (strlen(optarg)<1) || (strlen(optarg)>63) ) {
                     fprintf(stderr, "[serialport] Invalid argument\n.");
                     exit(0);
+                } else {
+                    strcpy( serialPort, optarg );
                 }
                 break;
             case '2':
