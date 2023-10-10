@@ -91,10 +91,6 @@
 
 #include "config/feature.h"
 
-#if defined(SITL_BUILD)
-#include "target/SITL/serial_proxy.h"
-#endif
-
 void taskHandleSerial(timeUs_t currentTimeUs)
 {
     UNUSED(currentTimeUs);

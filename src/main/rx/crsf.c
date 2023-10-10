@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "platform.h"
 #ifdef USE_SERIALRX_CRSF
@@ -41,7 +42,11 @@
 #include "rx/crsf.h"
 
 #include "telemetry/crsf.h"
+#if !defined(SITL_BUILD)
 #define CRSF_TIME_NEEDED_PER_FRAME_US   1100 // 700 ms + 400 ms for potential ad-hoc request
+#else
+#define CRSF_TIME_NEEDED_PER_FRAME_US   20000
+#endif
 #define CRSF_TIME_BETWEEN_FRAMES_US     6667 // At fastest, frames are sent by the transmitter every 6.667 milliseconds, 150 Hz
 
 #define CRSF_DIGITAL_CHANNEL_MIN 172
@@ -156,6 +161,7 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *rxCallbackData)
     if (crsfFramePosition == 0) {
         crsfFrameStartAt = now;
     }
+
     // assume frame is 5 bytes long until we have received the frame length
     // full frame length includes the length of the address and framelength fields
     const int fullFrameLength = crsfFramePosition < 3 ? 5 : crsfFrame.frame.frameLength + CRSF_FRAME_LENGTH_ADDRESS + CRSF_FRAME_LENGTH_FRAMELENGTH;
@@ -165,11 +171,18 @@ STATIC_UNIT_TESTED void crsfDataReceive(uint16_t c, void *rxCallbackData)
         crsfFrameDone = crsfFramePosition < fullFrameLength ? false : true;
         if (crsfFrameDone) {
             crsfFramePosition = 0;
+        fprintf(stderr, "%d\n", crsfFrame.frame.type);
+                if (crsfFrameCRC() == crsfFrame.bytes[fullFrameLength - 1]) {
+        fprintf(stderr, "correct - %d\n", crsfFrame.frame.type);
+                }
+
+
             if (crsfFrame.frame.type != CRSF_FRAMETYPE_RC_CHANNELS_PACKED) {
                 const uint8_t crc = crsfFrameCRC();
                 if (crc == crsfFrame.bytes[fullFrameLength - 1]) {
                     switch (crsfFrame.frame.type)
                     {
+
 #if defined(USE_MSP_OVER_TELEMETRY)
                         case CRSF_FRAMETYPE_MSP_REQ:
                         case CRSF_FRAMETYPE_MSP_WRITE: {
@@ -221,6 +234,7 @@ STATIC_UNIT_TESTED uint8_t crsfFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
             crsfChannelData[13] = rcChannels->chan13;
             crsfChannelData[14] = rcChannels->chan14;
             crsfChannelData[15] = rcChannels->chan15;
+
             return RX_FRAME_COMPLETE;
         }
         else if (crsfFrame.frame.type == CRSF_FRAMETYPE_LINK_STATISTICS) {

@@ -55,7 +55,7 @@ OptSerialStopBits_e serialStopBits = OPT_SERIAL_STOP_BITS_ONE;  //0:None|1:One|2
 OptSerialParity_e serialParity = OPT_SERIAL_PARITY_NONE;
 bool serialFCProxy = false;
 
-#define SERIAL_BUFFER_SIZE 128
+#define SERIAL_BUFFER_SIZE 256
 
 #if defined(__CYGWIN__)
 #include <windows.h>
@@ -213,7 +213,7 @@ void serialProxyInit(void) {
 #endif
     connected = true;
 
-    fprintf(stderr, "[SOCKET] connected %s to UART%d\n", portName, serialUartIndex);
+    fprintf(stderr, "[SERIALPROXY] connected %s to UART%d\n", portName, serialUartIndex);
 }
 
 void serialProxyClose(void) {
@@ -238,7 +238,6 @@ int serialProxyReadData(unsigned char *buffer, unsigned int nbChar) {
     ClearCommError(hSerial, &errors, &status);
     if (status.cbInQue>0) {
         unsigned int toRead = (status.cbInQue>nbChar) ? nbChar : status.cbInQue;
-
         if (ReadFile(hSerial, buffer, toRead, &bytesRead, NULL) && (bytesRead != 0)) {
             return bytesRead;
         }
