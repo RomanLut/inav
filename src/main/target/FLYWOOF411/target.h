@@ -97,18 +97,10 @@
 #define UART1_RX_PIN            PB7
 
 #define USE_UART2
-#define UART2_TX_PIN            NONE //PA2
+#define UART2_TX_PIN            PA2
 #define UART2_RX_PIN            PA3
 
-#define USE_SOFTSERIAL1
-#define SOFTSERIAL_1_TX_PIN     PA2 //Board: TX2 pin
-#define SOFTSERIAL_1_RX_PIN     PA1 //Board: Current pin
-
-#define USE_SOFTSERIAL2
-#define SOFTSERIAL_2_TX_PIN     PA15 //Board: LED pin
-#define SOFTSERIAL_2_RX_PIN     PA15 //Board: LED pin
-
-#define SERIAL_PORT_COUNT       5       // VCP, USART1, USART2, SS1, SS2
+#define SERIAL_PORT_COUNT       3       // VCP, USART1, USART2
 
 #define DEFAULT_RX_TYPE         RX_TYPE_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -135,7 +127,7 @@
 #define PINIO1_PIN                  PA10  //Board Servo3 pin
 
 // ***************  OTHERS *************************
-#define DEFAULT_FEATURES                (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_VBAT | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
+#define DEFAULT_FEATURES                (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_VBAT | FEATURE_TELEMETRY )
 
 #define USE_DSHOT
 #define USE_ESC_SENSOR
