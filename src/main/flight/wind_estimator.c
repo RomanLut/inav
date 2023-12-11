@@ -79,10 +79,6 @@ float getEstimatedHorizontalWindSpeed(uint16_t *angle)
 void updateWindEstimator(timeUs_t currentTimeUs)
 {
     static timeUs_t lastUpdateUs = 0;
-    static timeUs_t lastValidWindEstimate = 0;
-    static float lastValidEstimateAltitude = 0.0f;
-    float currentAltitude = gpsSol.llh.alt / 100.0f; // altitude in m
-
 
     if (!STATE(FIXED_WING_LEGACY) ||
         !isGPSHeadingValid() ||
@@ -177,9 +173,7 @@ void updateWindEstimator(timeUs_t currentTimeUs)
         }
 
         lastUpdateUs = currentTimeUs;
-        lastValidWindEstimate = currentTimeUs;
         hasValidWindEstimate = true;
-        lastValidEstimateAltitude = currentAltitude;
     }
 }
 
