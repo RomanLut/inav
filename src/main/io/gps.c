@@ -65,6 +65,7 @@
 #include "fc/config.h"
 #include "fc/runtime_config.h"
 #include "fc/settings.h"
+#include "fc/rc_controls.h"
 
 #include "flight/imu.h"
 #include "flight/wind_estimator.h"
@@ -230,10 +231,13 @@ bool canEstimateGPSFix(void)
     //we do not check neither sensors(SENSOR_GPS) nor FEATURE(FEATURE_GPS) because:
     //1) checking STATE(GPS_FIX_HOME) is enough to ensure that GPS sensor was initialized once
     //2) sensors(SENSOR_GPS) is false on GPS timeout. We also want to support GPS timeouts, not just lost fix
-    return positionEstimationConfig()->allow_gps_fix_estimation && STATE(AIRPLANE) && 
-        sensors(SENSOR_BARO) && baroIsHealthy() &&
-        ARMING_FLAG(WAS_EVER_ARMED) && STATE(GPS_FIX_HOME);
-        
+    return (
+                ((positionEstimationConfig()->allow_gps_fix_estimation == GPS_FIX_ESTIMATION_ON) && ARMING_FLAG(WAS_EVER_ARMED) && STATE(GPS_FIX_HOME)) ||
+                (positionEstimationConfig()->allow_gps_fix_estimation == GPS_FIX_ESTIMATION_ON_SAFE_HOME)
+        ) && 
+        STATE(AIRPLANE) && 
+        sensors(SENSOR_BARO) && baroIsHealthy();
+
 #else
     return false;
 #endif
@@ -247,7 +251,7 @@ void processDisableGPSFix(void)
     static int32_t last_lon = 0;
     static int32_t last_alt = 0;
 
-    if (LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_DISABLE_GPS_FIX)) {
+    if (LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_DISABLE_GPS_FIX) || IS_RC_MODE_ACTIVE(BOXGPSOFF)) {
         gpsSol.fixType = GPS_NO_FIX;
         gpsSol.hdop = 9999;
         gpsSol.numSat = 0;
@@ -277,6 +281,14 @@ void updateEstimatedGPSFix(void)
     static int32_t estimated_lat = 0;
     static int32_t estimated_lon = 0;
     static int32_t estimated_alt = 0;
+    static bool estimation_init = false;
+    static bool seenRaisedThrottle = false;
+
+    if ( !estimation_init ) {
+        estimation_init = true;
+        estimated_lat = safeHomeConfig(0)->lat;
+        estimated_lon = safeHomeConfig(0)->lon;
+    }
 
     uint32_t t = millis();
     int32_t dt = t - lastUpdateMs;
@@ -304,6 +316,22 @@ void updateEstimatedGPSFix(void)
     gpsSol.flags.validTime = false;
 
     float speed = pidProfile()->fixedWingReferenceAirspeed;
+    if ( !ARMING_FLAG(ARMED) )
+    {
+        seenRaisedThrottle = false;
+    }
+    else 
+    {
+        if ( rcCommand[THROTTLE]- getThrottleIdleValue() > 100 )
+        {
+            seenRaisedThrottle = true;
+        }
+    }
+
+    if ( !seenRaisedThrottle )
+    {
+        speed = 0;
+    }
 
 #ifdef USE_PITOT
     if (sensors(SENSOR_PITOT) && pitotIsHealthy()) {

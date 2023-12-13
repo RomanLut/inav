@@ -82,6 +82,7 @@ typedef enum {
     BOXMIXERPROFILE      = 53,
     BOXMIXERTRANSITION   = 54,
     BOXANGLEHOLD     = 55,
+ 	BOXGPSOFF        = 56,
     CHECKBOX_ITEM_COUNT
 } boxId_e;
 

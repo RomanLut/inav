@@ -175,6 +175,14 @@ typedef enum {
     MC_ALT_HOLD_HOVER,
 } navMcAltHoldThrottle_e;
 
+#ifdef USE_GPS_FIX_ESTIMATION
+typedef enum {
+    GPS_FIX_ESTIMATION_OFF = 0,
+    GPS_FIX_ESTIMATION_ON = 1,
+    GPS_FIX_ESTIMATION_ON_SAFE_HOME = 2,
+} gps_fix_estimation_e;
+#endif
+
 typedef struct positionEstimationConfig_s {
     uint8_t automatic_mag_declination;
     uint8_t reset_altitude_type; // from nav_reset_type_e
@@ -211,7 +219,7 @@ typedef struct positionEstimationConfig_s {
     uint8_t use_gps_no_baro;
 
 #ifdef USE_GPS_FIX_ESTIMATION
-    uint8_t allow_gps_fix_estimation;
+    uint8_t allow_gps_fix_estimation; //gps_fix_estimation_e
 #endif    
 } positionEstimationConfig_t;
 

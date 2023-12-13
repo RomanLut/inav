@@ -196,6 +196,9 @@ tables:
   - name: led_pin_pwm_mode
     values: ["SHARED_LOW", "SHARED_HIGH", "LOW", "HIGH"]
     enum: led_pin_pwm_mode_e
+  - name: gps_fix_estimation
+    values: ["OFF", "ON", "ON_SAFE_HOME"]
+    enum: gps_fix_estimation_e
 
 constants:
   RPYL_PID_MIN: 0
@@ -2294,9 +2297,9 @@ groups:
       - name: inav_allow_gps_fix_estimation
         description: "Defines if inav will estimate GPS fix with magnetometer and barometer on GPS outages. Enables navigation and RTH without GPS fix on fixed wing. Also see failsafe_gps_fix_estimation_delay."
         condition: USE_GPS_FIX_ESTIMATION
-        default_value: OFF
+        default_value: "OFF"
         field: allow_gps_fix_estimation
-        type: bool
+        table: gps_fix_estimation
       - name: inav_reset_altitude
         description: "Defines when relative estimated altitude is reset to zero. Variants - `NEVER` (once reference is acquired it's used regardless); `FIRST_ARM` (keep altitude at zero until firstly armed), `EACH_ARM` (altitude is reset to zero on each arming)"
         default_value: "FIRST_ARM"
