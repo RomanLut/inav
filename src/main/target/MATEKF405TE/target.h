@@ -155,6 +155,11 @@
 #define PINIO1_PIN                  PA4
 #define PINIO2_PIN                  PB5
 
+#if defined(MATEKF405TE_SD_S9_S10_PINIO3_PINIO4)
+#define PINIO3_PIN                  PB14
+#define PINIO4_PIN                  PA6
+#endif
+
 // *************** LEDSTRIP ************************
 #define USE_LED_STRIP
 #define WS2811_PIN                  PB1

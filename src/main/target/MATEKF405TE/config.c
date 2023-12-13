@@ -25,5 +25,9 @@ void targetConfiguration(void)
 {
     pinioBoxConfigMutable()->permanentId[0] = BOX_PERMANENT_ID_USER1;
     pinioBoxConfigMutable()->permanentId[1] = BOX_PERMANENT_ID_USER2;
+#if defined(MATEKF405TE_SD_S9_S10_PINIO3_PINIO4)
+    pinioBoxConfigMutable()->permanentId[2] = BOX_PERMANENT_ID_USER3;
+    pinioBoxConfigMutable()->permanentId[3] = BOX_PERMANENT_ID_USER4;
+#endif
     beeperConfigMutable()->pwmMode = true;
 }
