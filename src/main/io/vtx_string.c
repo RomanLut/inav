@@ -25,6 +25,10 @@
 #include "platform.h"
 #include "build/debug.h"
 
+#include "io/vtx_control.h"
+
+#include "vtx_string.h"
+
 #define VTX_STRING_5G8_BAND_COUNT  6
 #define VTX_STRING_5G8_CHAN_COUNT  8
 #define VTX_STRING_5G8_POWER_COUNT 5
@@ -39,8 +43,8 @@ const uint16_t vtx58frequencyTable[VTX_STRING_5G8_BAND_COUNT][VTX_STRING_5G8_CHA
     { 5733, 5752, 5771, 5790, 5809, 5828, 5847, 5866 }, // B
     { 5705, 5685, 5665, 5645, 5885, 5905, 5925, 5945 }, // E
     { 5740, 5760, 5780, 5800, 5820, 5840, 5860, 5880 }, // F
-    { 5658, 5695, 5732, 5769, 5806, 5843, 5880, 5917 }, // R
-    { 5362, 5399, 5436, 5473, 5510, 5547, 5584, 5621 }, // L
+    { 5658, 5695, 5732, 5769, 5806, 5843, 5880, 5917 }, // R band5
+    { 5362, 5399, 5436, 5473, 5510, 5547, 5584, 5621 }, // L band6
 };
 
 const char * const vtx58BandNames[VTX_STRING_5G8_BAND_COUNT + 1] = {
@@ -94,7 +98,7 @@ bool vtx58_Freq2Bandchan(uint16_t freq, uint8_t *pBand, uint8_t *pChannel)
     // get Raceband 7 instead of Fatshark 8.
     for (band = VTX_STRING_5G8_BAND_COUNT-1 ; band >= 0 ; band--) {
         for (channel = 0 ; channel < 8 ; channel++) {
-            if (vtx58frequencyTable[band][channel] == freq) {
+            if ((band>=4 ? vtx_get_band_freq( band+1, channel+1 ) : vtx58frequencyTable[band][channel]) == freq) {
                 *pBand = band + 1;
                 *pChannel = channel + 1;
                 return true;
@@ -116,7 +120,11 @@ uint16_t vtx58_Bandchan2Freq(uint8_t band, uint8_t channel)
 {
     if (band > 0 && band <= VTX_STRING_5G8_BAND_COUNT &&
                           channel > 0 && channel <= VTX_STRING_5G8_CHAN_COUNT) {
-        return vtx58frequencyTable[band - 1][channel - 1];
+        if ( band >= 5)  {
+            vtx_get_band_freq( band, channel );
+        } else {
+            return vtx58frequencyTable[band - 1][channel - 1];
+        }
     }
     return 0;
 }
@@ -132,4 +140,20 @@ uint16_t vtx1G3_Bandchan2Freq(uint8_t band, uint8_t channel)
         return vtx1G3frequencyTable[band - 1][channel - 1];
     }
     return 0;
+}
+
+//band 5 or 6, channel 1...8
+int16_t vtx_get_band_freq(int8_t band, int8_t channel)
+{
+    return band == 5 ? vtxConfig()->band5Freq[channel-1] : vtxConfig()->band6Freq[channel-1];
+}
+
+//band 5 or 6, channel 1...8
+void vtx_set_band_freq(int8_t band, int8_t channel, int16_t freq)
+{
+    if ( band == 5 ) {
+        vtxConfigMutable()->band5Freq[channel-1] = freq;
+    } else {
+        vtxConfigMutable()->band6Freq[channel-1] = freq;
+    }
 }

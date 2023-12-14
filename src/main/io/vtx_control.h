@@ -35,6 +35,8 @@ typedef struct vtxConfig_s {
     bool    smartAudioAltSoftSerialMethod;
     bool    softSerialShortStop;
     uint8_t smartAudioStopBits;
+    uint16_t band5Freq[8];
+    uint16_t band6Freq[8];
 } vtxConfig_t;
 
 PG_DECLARE(vtxConfig_t, vtxConfig);

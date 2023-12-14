@@ -107,6 +107,19 @@ static bool isLowPowerDisarmed(void)
 bool isVtxConfigValid(const vtxConfig_t *cfg)
 {
     LOG_DEBUG(VTX, "msp isVtxConfigValid\r\n");
+
+    for (int i = 0; i < 8; ++i) {
+        if ( (cfg->band5Freq[i] < 4000) || (cfg->band5Freq[i] > 7000)) {
+            return false;
+        }
+    }
+
+    for (int i = 0; i < 8; ++i) {
+        if ( (cfg->band6Freq[i] < 4000) || (cfg->band5Freq[i] > 7000)) {
+            return false;
+        }
+    }
+
     for (int i = 0; i < MAX_CHANNEL_ACTIVATION_CONDITION_COUNT; ++i) {
 
         if (cfg->vtxChannelActivationConditions[i].band || 

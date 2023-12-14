@@ -49,6 +49,8 @@ PG_RESET_TEMPLATE(vtxConfig_t, vtxConfig,
       .smartAudioAltSoftSerialMethod = SETTING_VTX_SMARTAUDIO_ALTERNATE_SOFTSERIAL_METHOD_DEFAULT,
       .softSerialShortStop = SETTING_VTX_SOFTSERIAL_SHORTSTOP_DEFAULT,
       .smartAudioStopBits = SETTING_VTX_SMARTAUDIO_STOPBITS_DEFAULT,
+      .band5Freq = { 5658, 5695, 5732, 5769, 5806, 5843, 5880, 5917 }, // R
+      .band6Freq = { 5362, 5399, 5436, 5473, 5510, 5547, 5584, 5621 }, // L
 );
 
 static uint8_t locked = 0;

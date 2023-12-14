@@ -94,6 +94,8 @@ bool cliMode = false;
 #include "io/ledstrip.h"
 #include "io/osd.h"
 #include "io/serial.h"
+#include "io/vtx_string.h"
+#include "io/vtx_control.h"
 
 #include "fc/fc_msp_box.h"
 
@@ -2041,6 +2043,64 @@ static void cliLogic(char *cmdline) {
     processCliLogic(cmdline, -1);
 }
 
+static void printVtxBand(uint8_t dumpMask, const vtxConfig_t* cfg, int8_t band)
+{
+    const char *format = band==5 ? "vtx_band5 %d %d %d %d %d %d %d %d" : "vtx_band6 %d %d %d %d %d %d %d %d"; 
+
+    if ( cfg == NULL ) cfg = vtxConfig();
+
+    const uint16_t* f = band==5 ? cfg->band5Freq : cfg->band6Freq;
+
+    cliDumpPrintLinef(dumpMask, false, format,
+        f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7]
+    );
+}
+
+static void processVtxBand(char *cmdline, int8_t band) {
+    char * saveptr;
+    int args[8], check = 0;
+    uint8_t len = strlen(cmdline);
+
+    if (len == 0) {
+        printVtxBand(DUMP_MASTER, NULL, band);
+    } else {
+        char *ptr = strtok_r(cmdline, " ", &saveptr);
+        while (ptr != NULL && check < 8) {
+            args[check++] = fastA2I(ptr);
+            ptr = strtok_r(NULL, " ", &saveptr);
+        }
+
+        if (ptr != NULL || check != 8) {
+            cliShowParseError();
+            return;
+        }
+
+        bool error = false;
+        for ( int i = 0; i < 8; i++ ) {
+            if ( (args[i] < 4000) || (args[i] > 7000)) {
+                error = true;
+            }
+        }
+
+        if ( !error ) {
+            for ( int i = 1; i < 9; i++ ) {
+                vtx_set_band_freq(band, i, args[i-1]);
+            }
+            processVtxBand("", band);
+        } else {
+            cliShowParseError();
+        }
+    }
+}
+
+static void cliVtxBand5(char *cmdline) {
+    processVtxBand(cmdline, 5);
+}
+
+static void cliVtxBand6(char *cmdline) {
+    processVtxBand(cmdline, 6);
+}
+
 static void printGvar(uint8_t dumpMask, const globalVariableConfig_t *gvars, const globalVariableConfig_t *defaultGvars)
 {
     const char *format = "gvar %d %d %d %d";
@@ -3863,6 +3923,9 @@ static void printConfig(const char *cmdline, bool doDiff)
         cliPrintHashLine("Programming: PID controllers");
         printPid(dumpMask, programmingPids_CopyArray, programmingPids(0));
 #endif
+        cliPrintHashLine("VTX:");
+        printVtxBand(dumpMask, &vtxConfig_Copy, 5);
+        printVtxBand(dumpMask, &vtxConfig_Copy, 6);
 
         cliPrintHashLine("master");
         dumpAllValues(MASTER_VALUE, dumpMask);
@@ -4110,6 +4173,14 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("osd_layout", "get or set the layout of OSD items", "[<layout> [<item> [<col> <row> [<visible>]]]]", cliOsdLayout),
 #endif
     CLI_COMMAND_DEF("timer_output_mode", "get or set the outputmode for a given timer.",  "[<timer> [<AUTO|MOTORS|SERVOS>]]", cliTimerOutputMode),
+
+    CLI_COMMAND_DEF("vtx_band5", "configure vtx band 5 frequencies",
+        "<channel1> <channel2> <channel3> <channel4> <channel5> <channel6> <channel7> <channel8>\r\n",
+        cliVtxBand5),
+
+    CLI_COMMAND_DEF("vtx_band6", "configure vtx band 6 frequencies",
+        "<channel1> <channel2> <channel3> <channel4> <channel5> <channel6> <channel7> <channel8>\r\n",
+        cliVtxBand6),
 };
 
 static void cliHelp(char *cmdline)

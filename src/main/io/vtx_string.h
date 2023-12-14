@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-extern const uint16_t vtx58frequencyTable[5][8];
+extern const uint16_t vtx58frequencyTable[6][8];
 extern const char * const vtx58BandNames[];
 extern const char * const vtx58ChannelNames[];
 extern const char * const vtx58DefaultPowerNames[];
@@ -17,3 +17,6 @@ extern const char vtx51G3BandLetter[];
 bool vtx58_Freq2Bandchan(uint16_t freq, uint8_t *pBand, uint8_t *pChannel);
 uint16_t vtx58_Bandchan2Freq(uint8_t band, uint8_t channel);
 uint16_t vtx1G3_Bandchan2Freq(uint8_t band, uint8_t channel);
+
+int16_t vtx_get_band_freq(int8_t band, int8_t channel);
+void vtx_set_band_freq(int8_t band, int8_t channel, int16_t freq);
