@@ -1832,6 +1832,7 @@ static bool osdDrawSingleElement(uint8_t item)
 
 #ifdef USE_GPS
     case OSD_GPS_SATS:
+    {
         buff[0] = SYM_SAT_L;
         buff[1] = SYM_SAT_R;
         tfp_sprintf(buff + 2, "%2d", gpsSol.numSat);
@@ -1839,28 +1840,42 @@ static bool osdDrawSingleElement(uint8_t item)
         if (STATE(GPS_ESTIMATED_FIX)) {
             strcpy(buff + 2, "ES");
             TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
-        } else 
+        } 
 #endif
+        hardwareSensorStatus_e sensorStatus = getHwGPSStatus();
         if (!STATE(GPS_FIX)) {
-            hardwareSensorStatus_e sensorStatus = getHwGPSStatus();
             if (sensorStatus == HW_SENSOR_UNAVAILABLE || sensorStatus == HW_SENSOR_UNHEALTHY) {
-                buff[2] = SYM_ALERT;
-                buff[3] = '\0';
+                buff[2] = '!';
+                buff[3] = 'X';
+                buff[4] = 0;
             }
             TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
-
-            buff2[0] = ' ';
-            buff2[1] = '#';
-            buff2[3] = '*';
-            buff2[4] = '*';
         }
-        else {
-            buff2[0] = ' ';
-            buff2[1] = '#';
+
+        if (sensorStatus == HW_SENSOR_UNAVAILABLE || sensorStatus == HW_SENSOR_UNHEALTHY) {
+            buff2[0] = 'H';
+            buff2[1] = 'W';
+            buff2[2] = 'F';
+            buff2[3] = 'A';
+            buff2[4] = 0;
+        }
+        else
+        {
+            if ( gpsSol2.fixType == GPS_FIX_2D ) {
+                buff2[0] = '2';
+                buff2[1] = 'D';
+            } else if ( gpsSol2.fixType == GPS_FIX_3D ) {
+                buff2[0] = '3';
+                buff2[1] = 'D';
+            } else {
+                buff2[0] = '-';
+                buff2[1] = '-';
+            }
             tfp_sprintf(buff2 + 2, "%2d", gpsSol2.numSat);
         }
-        break;
 
+        break;
+    }
     case OSD_GPS_SPEED:
         osdFormatVelocityStr(buff, gpsSol.groundSpeed, false, false);
         break;
