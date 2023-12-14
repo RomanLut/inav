@@ -1836,13 +1836,9 @@ static bool osdDrawSingleElement(uint8_t item)
         buff[0] = SYM_SAT_L;
         buff[1] = SYM_SAT_R;
         tfp_sprintf(buff + 2, "%2d", gpsSol.numSat);
-#ifdef USE_GPS_FIX_ESTIMATION
-        if (STATE(GPS_ESTIMATED_FIX)) {
-            strcpy(buff + 2, "ES");
-            TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
-        } 
-#endif
+
         hardwareSensorStatus_e sensorStatus = getHwGPSStatus();
+
         if (!STATE(GPS_FIX)) {
             if (sensorStatus == HW_SENSOR_UNAVAILABLE || sensorStatus == HW_SENSOR_UNHEALTHY) {
                 buff[2] = '!';
@@ -1851,6 +1847,13 @@ static bool osdDrawSingleElement(uint8_t item)
             }
             TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
         }
+
+#ifdef USE_GPS_FIX_ESTIMATION
+        if (STATE(GPS_ESTIMATED_FIX)) {
+            strcpy(buff + 2, "ES");
+            TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
+        } 
+#endif
 
         if (sensorStatus == HW_SENSOR_UNAVAILABLE || sensorStatus == HW_SENSOR_UNHEALTHY) {
             buff2[0] = 'H';
