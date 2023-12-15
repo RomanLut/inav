@@ -284,15 +284,16 @@ void updateEstimatedGPSFix(void)
     static bool estimation_init = false;
     static bool seenRaisedThrottle = false;
 
+    uint32_t t = millis();
+    int32_t dt = t - lastUpdateMs;
+    lastUpdateMs = t;
+
     if ( !estimation_init ) {
         estimation_init = true;
         estimated_lat = safeHomeConfig(0)->lat;
         estimated_lon = safeHomeConfig(0)->lon;
+        dt = 0;
     }
-
-    uint32_t t = millis();
-    int32_t dt = t - lastUpdateMs;
-    lastUpdateMs = t;
 
     bool sensorHasFix = gpsSol.fixType == GPS_FIX_3D && gpsSol.numSat >= gpsConfig()->gpsMinSats;
 
@@ -355,7 +356,7 @@ void updateEstimatedGPSFix(void)
     }
 
     estimated_lat += (int32_t)( velX * dt / (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * 1000 ) );
-    estimated_lon += (int32_t)( velY * dt / (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * 1000 * posControl.gpsOrigin.scale) );
+    estimated_lon += (int32_t)( velY * dt / (DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * 1000 * (posControl.gpsOrigin.valid ? posControl.gpsOrigin.scale : 1)) );
     estimated_alt = posControl.gpsOrigin.alt + baro.BaroAlt;
 
     gpsSol.llh.lat = estimated_lat;
