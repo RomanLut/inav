@@ -2295,7 +2295,7 @@ groups:
         field: allow_dead_reckoning
         type: bool
       - name: inav_allow_gps_fix_estimation
-        description: "Defines if inav will estimate GPS fix with magnetometer and barometer on GPS outages. Enables navigation and RTH without GPS fix on fixed wing. Also see failsafe_gps_fix_estimation_delay."
+        description: "Defines if inav will estimate GPS fix with magnetometer and barometer on GPS outages. Enables navigation and RTH without GPS fix/with GPS HW failure on fixed wing. Possible values are OFF, ON and ON_SAFE_HOME. In ON_SAFE_HOME mode, estimation works from the start and allows to launch without GPS fix at. Starting point for position estimation is assumed to be safe home 0. Also see failsafe_gps_fix_estimation_delay."
         condition: USE_GPS_FIX_ESTIMATION
         default_value: "OFF"
         field: allow_gps_fix_estimation

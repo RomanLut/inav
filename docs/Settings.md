@@ -1774,11 +1774,11 @@ Defines if INAV will dead-reckon over short GPS outages. May also be useful for 
 
 ### inav_allow_gps_fix_estimation
 
-Defines if inav will estimate GPS fix with magnetometer and barometer on GPS outages. Enables navigation and RTH without GPS fix on fixed wing. Also see failsafe_gps_fix_estimation_delay.
+Defines if inav will estimate GPS fix with magnetometer and barometer on GPS outages. Enables navigation and RTH without GPS fix/with GPS HW failure on fixed wing. Possible values are OFF, ON and ON_SAFE_HOME. In ON_SAFE_HOME mode, estimation works from the start and allows to launch without GPS fix at. Starting point for position estimation is assumed to be safe home 0. Also see failsafe_gps_fix_estimation_delay.
 
 | Default | Min | Max |
 | --- | --- | --- |
-| OFF | OFF | ON |
+| OFF |  |  |
 
 ---
 
@@ -2828,7 +2828,7 @@ If set to ON, INAV disarms the FC after landing
 
 | Default | Min | Max |
 | --- | --- | --- |
-| ON | OFF | ON |
+| OFF | OFF | ON |
 
 ---
 
@@ -3758,7 +3758,7 @@ RTH sanity checking feature will notice if distance to home is increasing during
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 50000 | 0 | 65000 |
+| 0 | 0 | 65000 |
 
 ---
 
@@ -6014,7 +6014,7 @@ Warning voltage per cell, this triggers battery-warning alarms, in 0.01V units, 
 
 ### vtx_band
 
-Configure the VTX band. Set to zero to use `vtx_freq`. Bands: 1: A, 2: B, 3: E, 4: F, 5: Race.
+Configure the VTX band. Set to zero to use `vtx_freq`. Bands: 1: A, 2: B, 3: E, 4: F, 5: Race, 6: L.
 
 | Default | Min | Max |
 | --- | --- | --- |
