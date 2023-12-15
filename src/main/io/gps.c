@@ -464,6 +464,8 @@ static void gpsResetSolution(gpsSolutionData_t* gpsSol)
 
 void gpsTryEstimateOnTimeout(void)
 {
+    gpsSol2.fixType = GPS_NO_FIX;
+
     gpsResetSolution(&gpsSol);
     DISABLE_STATE(GPS_FIX);
 
