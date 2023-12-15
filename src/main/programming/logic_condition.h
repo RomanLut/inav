@@ -254,6 +254,8 @@ void logicConditionReset(void);
 float getThrottleScale(float globalThrottleScale);
 int16_t getRcCommandOverride(int16_t command[], uint8_t axis);
 int16_t getRcChannelOverride(uint8_t channel, int16_t originalValue);
+bool isRcChannelOverrideActive(uint8_t channel);
+
 uint32_t getLoiterRadius(uint32_t loiterRadius);
 float getFlightAxisAngleOverride(uint8_t axis, float angle);
 float getFlightAxisRateOverride(uint8_t axis, float rate);

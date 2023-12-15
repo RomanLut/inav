@@ -384,50 +384,55 @@ static bool emergencyArmingIsEnabled(void)
 
 static void processPilotAndFailSafeActions(float dT)
 {
+    bool bApply = true;
     if (failsafeShouldApplyControlInput()) {
         // Failsafe will apply rcCommand for us
         failsafeApplyControlInput();
+        bApply = false;
     }
-    else {
-        // Compute ROLL PITCH and YAW command
-        rcCommand[ROLL] = getAxisRcCommand(rxGetChannelValue(ROLL), FLIGHT_MODE(MANUAL_MODE) ? currentControlRateProfile->manual.rcExpo8 : currentControlRateProfile->stabilized.rcExpo8, rcControlsConfig()->deadband);
-        rcCommand[PITCH] = getAxisRcCommand(rxGetChannelValue(PITCH), FLIGHT_MODE(MANUAL_MODE) ? currentControlRateProfile->manual.rcExpo8 : currentControlRateProfile->stabilized.rcExpo8, rcControlsConfig()->deadband);
-        rcCommand[YAW] = -getAxisRcCommand(rxGetChannelValue(YAW), FLIGHT_MODE(MANUAL_MODE) ? currentControlRateProfile->manual.rcYawExpo8 : currentControlRateProfile->stabilized.rcYawExpo8, rcControlsConfig()->yaw_deadband);
 
-        // Apply manual control rates
-        if (FLIGHT_MODE(MANUAL_MODE)) {
-            rcCommand[ROLL] = rcCommand[ROLL] * currentControlRateProfile->manual.rates[FD_ROLL] / 100L;
-            rcCommand[PITCH] = rcCommand[PITCH] * currentControlRateProfile->manual.rates[FD_PITCH] / 100L;
-            rcCommand[YAW] = rcCommand[YAW] * currentControlRateProfile->manual.rates[FD_YAW] / 100L;
-        } else {
-            DEBUG_SET(DEBUG_RATE_DYNAMICS, 0, rcCommand[ROLL]);
-            rcCommand[ROLL] = applyRateDynamics(rcCommand[ROLL], ROLL, dT);
-            DEBUG_SET(DEBUG_RATE_DYNAMICS, 1, rcCommand[ROLL]);
+    bool bRoll = bApply || isRcChannelOverrideActive(0);
+    bool bPitch = bApply || isRcChannelOverrideActive(1);
+    bool bYaw = bApply || isRcChannelOverrideActive(2);
+    bool bThrottle = bApply || isRcChannelOverrideActive(3);
 
-            DEBUG_SET(DEBUG_RATE_DYNAMICS, 2, rcCommand[PITCH]);
-            rcCommand[PITCH] = applyRateDynamics(rcCommand[PITCH], PITCH, dT);
-            DEBUG_SET(DEBUG_RATE_DYNAMICS, 3, rcCommand[PITCH]);
+    // Compute ROLL PITCH and YAW command
+    if ( bRoll ) rcCommand[ROLL] = getAxisRcCommand(rxGetChannelValue(ROLL), FLIGHT_MODE(MANUAL_MODE) ? currentControlRateProfile->manual.rcExpo8 : currentControlRateProfile->stabilized.rcExpo8, rcControlsConfig()->deadband);
+    if ( bPitch ) rcCommand[PITCH] = getAxisRcCommand(rxGetChannelValue(PITCH), FLIGHT_MODE(MANUAL_MODE) ? currentControlRateProfile->manual.rcExpo8 : currentControlRateProfile->stabilized.rcExpo8, rcControlsConfig()->deadband);
+    if ( bYaw ) rcCommand[YAW] = -getAxisRcCommand(rxGetChannelValue(YAW), FLIGHT_MODE(MANUAL_MODE) ? currentControlRateProfile->manual.rcYawExpo8 : currentControlRateProfile->stabilized.rcYawExpo8, rcControlsConfig()->yaw_deadband);
 
-            DEBUG_SET(DEBUG_RATE_DYNAMICS, 4, rcCommand[YAW]);
-            rcCommand[YAW] = applyRateDynamics(rcCommand[YAW], YAW, dT);
-            DEBUG_SET(DEBUG_RATE_DYNAMICS, 5, rcCommand[YAW]);
+    // Apply manual control rates
+    if (FLIGHT_MODE(MANUAL_MODE)) {
+        if ( bRoll ) rcCommand[ROLL] = rcCommand[ROLL] * currentControlRateProfile->manual.rates[FD_ROLL] / 100L;
+        if ( bPitch) rcCommand[PITCH] = rcCommand[PITCH] * currentControlRateProfile->manual.rates[FD_PITCH] / 100L;
+        if ( bYaw ) rcCommand[YAW] = rcCommand[YAW] * currentControlRateProfile->manual.rates[FD_YAW] / 100L;
+    } else {
+        DEBUG_SET(DEBUG_RATE_DYNAMICS, 0, rcCommand[ROLL]);
+        if ( bRoll ) rcCommand[ROLL] = applyRateDynamics(rcCommand[ROLL], ROLL, dT);
+        DEBUG_SET(DEBUG_RATE_DYNAMICS, 1, rcCommand[ROLL]);
 
-        }
+        DEBUG_SET(DEBUG_RATE_DYNAMICS, 2, rcCommand[PITCH]);
+        if ( bPitch) rcCommand[PITCH] = applyRateDynamics(rcCommand[PITCH], PITCH, dT);
+        DEBUG_SET(DEBUG_RATE_DYNAMICS, 3, rcCommand[PITCH]);
 
-        //Compute THROTTLE command
-        rcCommand[THROTTLE] = throttleStickMixedValue();
+        DEBUG_SET(DEBUG_RATE_DYNAMICS, 4, rcCommand[YAW]);
+        if ( bYaw ) rcCommand[YAW] = applyRateDynamics(rcCommand[YAW], YAW, dT);
+        DEBUG_SET(DEBUG_RATE_DYNAMICS, 5, rcCommand[YAW]);
+    }
 
-        // Signal updated rcCommand values to Failsafe system
-        failsafeUpdateRcCommandValues();
+    //Compute THROTTLE command
+    if ( bThrottle ) rcCommand[THROTTLE] = throttleStickMixedValue();
 
-        if (FLIGHT_MODE(HEADFREE_MODE)) {
-            const float radDiff = degreesToRadians(DECIDEGREES_TO_DEGREES(attitude.values.yaw) - headFreeModeHold);
-            const float cosDiff = cos_approx(radDiff);
-            const float sinDiff = sin_approx(radDiff);
-            const int16_t rcCommand_PITCH = rcCommand[PITCH] * cosDiff + rcCommand[ROLL] * sinDiff;
-            rcCommand[ROLL] = rcCommand[ROLL] * cosDiff - rcCommand[PITCH] * sinDiff;
-            rcCommand[PITCH] = rcCommand_PITCH;
-        }
+    // Signal updated rcCommand values to Failsafe system
+    if ( bApply ) failsafeUpdateRcCommandValues();
+
+    if (FLIGHT_MODE(HEADFREE_MODE) && (bRoll || bPitch || bYaw)) {
+        const float radDiff = degreesToRadians(DECIDEGREES_TO_DEGREES(attitude.values.yaw) - headFreeModeHold);
+        const float cosDiff = cos_approx(radDiff);
+        const float sinDiff = sin_approx(radDiff);
+        const int16_t rcCommand_PITCH = rcCommand[PITCH] * cosDiff + rcCommand[ROLL] * sinDiff;
+        rcCommand[ROLL] = rcCommand[ROLL] * cosDiff - rcCommand[PITCH] * sinDiff;
+        rcCommand[PITCH] = rcCommand_PITCH;
     }
 }
 

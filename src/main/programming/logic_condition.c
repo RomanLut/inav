@@ -1039,6 +1039,11 @@ int16_t getRcCommandOverride(int16_t command[], uint8_t axis) {
     return outputValue;
 }
 
+bool isRcChannelOverrideActive(uint8_t channel) {
+    return LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_RC_CHANNEL) &&  rcChannelOverrides[channel].active;
+}
+
+
 int16_t getRcChannelOverride(uint8_t channel, int16_t originalValue) {
     if (rcChannelOverrides[channel].active) {
         return rcChannelOverrides[channel].value;
