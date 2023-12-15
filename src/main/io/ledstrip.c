@@ -534,7 +534,7 @@ static void applyLedWarningLayer(bool updateNow, timeUs_t *timer)
                 warningFlags |= 1 << WARNING_FAILSAFE;
             if (!ARMING_FLAG(ARMED) && isArmingDisabled())
                 warningFlags |= 1 << WARNING_ARMING_DISABLED;
-            if (!isHardwareHealthy())
+            if (!isHardwareHealthy(false))
                 warningFlags |= 1 << WARNING_HW_ERROR;
         }
         *timer += LED_STRIP_HZ(10);

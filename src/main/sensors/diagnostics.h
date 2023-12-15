@@ -27,5 +27,5 @@ hardwareSensorStatus_e getHwRangefinderStatus(void);
 hardwareSensorStatus_e getHwPitotmeterStatus(void);
 hardwareSensorStatus_e getHwOpticalFlowStatus(void);
 
-bool isHardwareHealthy(void);
+bool isHardwareHealthy(bool skipGPS);
 

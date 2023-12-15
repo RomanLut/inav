@@ -465,7 +465,7 @@ uint16_t packSensorStatus(void)
             IS_ENABLED(sensors(SENSOR_TEMP))        << 7;
 
     // Hardware failure indication bit
-    if (!isHardwareHealthy()) {
+    if (!isHardwareHealthy(false)) {
         sensorStatus |= 1 << 15;        // Bit 15 of sensor bit field indicates hardware failure
     }
 

@@ -404,7 +404,7 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
         break;
 
     case MSP_SENSOR_STATUS:
-        sbufWriteU8(dst, isHardwareHealthy() ? 1 : 0);
+        sbufWriteU8(dst, isHardwareHealthy(false) ? 1 : 0);
         sbufWriteU8(dst, getHwGyroStatus());
         sbufWriteU8(dst, getHwAccelerometerStatus());
         sbufWriteU8(dst, getHwCompassStatus());

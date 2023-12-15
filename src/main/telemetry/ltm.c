@@ -236,7 +236,7 @@ void ltm_oframe(sbuf_t *dst)
 void ltm_xframe(sbuf_t *dst)
 {
     uint8_t sensorStatus =
-        (isHardwareHealthy() ? 0 : 1) << 0;     // bit 0 - hardware failure indication (1 - something is wrong with the hardware sensors)
+        (isHardwareHealthy(false) ? 0 : 1) << 0;     // bit 0 - hardware failure indication (1 - something is wrong with the hardware sensors)
 
     sbufWriteU8(dst, 'X');
 #if defined(USE_GPS)

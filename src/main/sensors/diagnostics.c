@@ -223,7 +223,7 @@ hardwareSensorStatus_e getHwOpticalFlowStatus(void)
 #endif
 }
 
-bool isHardwareHealthy(void)
+bool isHardwareHealthy(bool skipGPS)
 {
     const hardwareSensorStatus_e gyroStatus = getHwGyroStatus();
     const hardwareSensorStatus_e accStatus = getHwAccelerometerStatus();
@@ -253,8 +253,10 @@ bool isHardwareHealthy(void)
     if (pitotStatus == HW_SENSOR_UNAVAILABLE || pitotStatus == HW_SENSOR_UNHEALTHY)
         return false;
 
-    if (gpsStatus == HW_SENSOR_UNAVAILABLE || gpsStatus == HW_SENSOR_UNHEALTHY)
-        return false;
+    if (!skipGPS) {
+        if (gpsStatus == HW_SENSOR_UNAVAILABLE || gpsStatus == HW_SENSOR_UNHEALTHY)
+            return false;
+    }
 
     if (opflowStatus == HW_SENSOR_UNAVAILABLE || opflowStatus == HW_SENSOR_UNHEALTHY)
         return false;

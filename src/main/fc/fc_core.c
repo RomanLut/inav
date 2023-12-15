@@ -292,7 +292,7 @@ static void updateArmingStatus(void)
         }
 
         /* CHECK: */
-        if (!isHardwareHealthy()) {
+        if (!isHardwareHealthy(STATE(GPS_ESTIMATED_FIX))) {
             ENABLE_ARMING_FLAG(ARMING_DISABLED_HARDWARE_FAILURE);
         }
         else {

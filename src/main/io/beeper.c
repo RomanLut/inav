@@ -328,7 +328,7 @@ void beeperUpdate(timeUs_t currentTimeUs)
     }
 
     // Beep out hardware failure
-    if (!isHardwareHealthy()) {
+    if (!isHardwareHealthy(false)) {
         beeper(BEEPER_HARDWARE_FAILURE);
     }
 
