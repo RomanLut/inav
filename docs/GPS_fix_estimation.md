@@ -1,135 +1,214 @@
-> [!CAUTION]
-> # ***** WORK IN PROGRESS!!!! ****
-> 
-# GPS Fix estimation (dead reconing, RTH without GPS) for fixed wing
+# Опис
 
-Video demonstration
+Відео демонстрація:
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/wzvgRpXCS4U/0.jpg)](https://www.youtube.com/watch?v=wzvgRpXCS4U)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/MiOdIXQ3F5w/0.jpg)](https://www.youtube.com/watch?v=MiOdIXQ3F5w)
 
-There is possibility to allow plane to estimate it's position when GPS fix is lost.
-The main purpose is RTH without GPS.
-It works for fixed wing only.
-
-Plane should have the following sensors:
-- acceleromenter, gyroscope
-- barometer
-- GPS
-- magnethometer (optional, highly recommended)
-- pitot (optional)
-
-By befault, all navigation modes are disabled when GPS fix is lost. If RC signal is lost also, plane will not be able to enable RTH. Plane will switch to LANDING instead. When flying above unreachable spaces, plane will be lost.
-
-GPS fix estimation allows to recover plane using magnetometer and baromener only.
-
-GPS Fix is also estimated on GPS Sensor timeouts (hardware failures).
-
-Note, that GPS fix estimation is not a solution for navigation without GPS. Without GPS fix, position error accumulates quickly. But it is acceptable for RTH. This is not a solution for flying under spoofing also. GPS is the most trusted sensor in Inav. It's output is not validated.
-
-# How it works ?
-
-In normal situation, plane is receiving it's position from GPS sensor. This way it is able to hold course, RTH or navigate by waypoints.
-
-Without GPS fix, plane has nose heading from magnetometer and height from barometer only.
-
-To navigate without GPS fix, we make the following assumptions:
-- plane is flying in the direction where nose is pointing
-- (if pitot tube is not installed) plane is flying with constant airspeed, specified in settings
-
-It is possible to roughly estimate position using theese assumptions. To increase accuracy, plane will use information about wind direction and speed, estimated before GPS fix was lost. To increase groundspeed estimation accuracy, plane will use pitot tube data(if available).
-
-From estimated heading direction and speed, plane is able to **roughty** estimate it's position.
-
-It is assumed, that plane will fly in roughly estimated direction to home position untill either GPS fix or RC signal is recovered.
-
-*Plane has to aquire GPS fix and store home position before takeoff. Estimation completely without GPS fix will not work*.
-
-# Estimation without magnethometer
-
-Without magnethometer, navigation accuracy is very poor. The problem is heading drift. 
-
-The longer plane flies without magnethometer or GPS, the bigger is course estimation error.
-
-After few minutes and few turns, "North" direction estimation can be completely broken.
-In general, accuracy is enough to perform RTH U-turn when both RC controls and GPS are lost, and roughtly keep RTH direction in areas with occasional GPS outages.
-
-![image](https://github.com/RomanLut/inav/assets/11955117/3d5c5d10-f43a-45f9-a647-af3cca87c4da)
-
-(purple line - estimated position, black line - real position).
-
-It is recommened to use GPS fix estimation without magnethometer as last resort only. For example, if plane is flying above lake, landing means loss of plane. With GPS Fix estimation, plane will try to do RTH in very rought direction, instead of landing.
-
-It is up to user to estimate the risk of fly-away.
+На цьому ресурсі викладено модифіковану прошивку INAV 6.0 з можливістю навігаціі за умов **тимчасової** відсутності GPS.
+Працює лише на літаках.
+Основна мета модифікації - **повернення літака домому в умовах втрати сигналів керування та GPS**.
 
 
-# Settings
+Літак повинен бути обладнаний датчиками:
+- **акселерометр, гіроскоп**
+- **барометр**
+- **GPS**
+- **компас(обовязково для забезпечення точності навігаці, див. опис нижче)**
+- *трубка піто* (не обов'язково)
 
-GPS Fix estimation is enabled with CLI command:
+
+Наявна прошивка INAV **відключає всі навігаційні режими** при втраті GPS сигналу. При польотах над недоступною місцевістю, втрата сигналу керування означає втрату літака, оскільки літак може лише або продовжувати безконтрольно летіти, або приземлитися.
+
+Модифікована прошивка дозволяє повернути літак, вікористовуючи лише компас і барометр.
+
+Треба наголосити, що прошивка **не є рішенням для виконання місій в умовах повної відсутності GPS**. Якщо повернення додому з похибкою +-2км для відновлення сигналу керування є нормальним, то виконання місій з такою похибкою навряд чи є доцільним.
+
+При використанні компасу, в реальних умовах похибка складає до 200м на 1 км шляху. 
+
+Без компасу літак може полетіти в будь-якому напрямку, дивись опис нижче!
+
+
+# Завантаження
+
+### Версія: 1.3
+
+Прошивку можна завантажити тут https://github.com/RomanLut/inav/tree/6.0.0_gps_fix_estimation/firmware
+
+або самостійно зібрати з branch https://github.com/RomanLut/inav/tree/6.0.0_gps_fix_estimation
+
+
+### Історія змін
+
+* **1.3 ======**
+ 
+    - Додана можливість навігації без компасу
+ 
+    - Додана можливість встановлювати Band L (LowRace) через SmartAudio/IRC Tramp
+ 
+    - ```nav_rth_abort_threshold=0``` та ```nav_disarm_on_landing= off``` встановлені за замовчуванням.
+ 
+*Чи обов'язково перешиватись з версії 1.2? Якщо не потрібні Lowrace Band та навігація без компасу - перешиватись не обов'язково. Але рекомендується встановити ```nav_rth_abort_threshold=0``` та ```nav_disarm_on_landing= off``` в cli.*
+
+* **1.2 ======**
+ 
+    - Естимація вітру вважається достовірною, якщо перераховувалась не більше 30 хвилин тому (було: не більше 15 хвилин тому)
+    
+    - Остання відома сила вітру вікористовується впродовж всього польоту з GPS Fix estimation (було: не більше 15 хвилин)
+    
+    - Покращено дотримання курсу в режимі GPS Fix estimation під впливом бокового вітру
+     
+    
+Одне з нововведень inav 6.0 - дотримання лініі маршруту, а не просто постійне повертання носу на цільову точку.
+
+В версіі 1.2 воно праціє і для GPS Fix estimation.
+
+Дотримання курсу, GPS Fix estimation, вітер з півночі, версія 1.1:
+    
+![Configurator example 2](gps_fix_estimation_rth_1_1.jpg)
+
+Дотримання курсу, GPS Fix estimation, вітер з півночі, версія 1.2:
+    
+![Configurator example 2](gps_fix_estimation_rth_1_2.jpg)
+    
+    
+* **1.1 ======** 
+ 
+    - Додано відображення супутників та координат з GPS сенсора
+    
+    
+* **1.0 ======** 
+ 
+    - Перша робоча версія на основі INAV 6.0
+
+
+# Як це працює ?
+
+За нормальних умов, літак отримує своє положення від датчика GPS, що надає йому можливість здійснювати навігацію згідно маршруту.
+
+За відсутності GPS, літак має інформацію лише про напрямок польоту (від компасу).
+
+Припустивши, що в навігаційних режимах літак рухається з постійною відомою швидкістю, є можливість вираховувати нові координати, використовуючи останні відомі координати, напрямок і швидкість (так званий метод навігації "dead reconing").
+
+Але така навігація не є точною. З часом накопичується істотна похибка. 
+
+Припускається, що літак почне повернення з деяким відхиленням від курсу, після чого сигнали GPS або керування відновляться.
+
+*Первинно літак повинен отримати GPS fix і запям'ятати точку повернення. Тобто зліт в умовах повної відсутності GPS неможливий.*
+
+# Навігація без компасу
+
+**Не рекомендується використовувати навігацію без компасу окрім випадку включення RTH через декілька секунд після втрати GPS Fix.**
+
+Літак має можливість вираховувати напрямок на північ, коли працює GPS. При відключенні GPS, напрямок на північ видає компас. При відсутності компасу, напрямок на північ перераховується, використовуючи останній відомий напрямок та кутову швидкість. Нажаль, похибка накопичується доволі швидко. В реальних умовах, вже через одну хвилину польоту, напрямок може бути спотворений на 45 градусів! 
+
+Якщо є потреба забезпечити, что б літак ні в якому разі не сідав при втраті керування та GPS - це працює. Але точність навігаціі ніяк не забезпечується без компасу! Можна використувувати, лише розуміючи ризик - у разі втрати керування літак може полетіти в будь-якому напрямку!
+
+# Налаштування
+
+Включення навігації без GPS виконується командою CLI:
 
 ```set inav_allow_gps_fix_estimation=ON```
 
-Also you have to specify cruise airspeed of the plane.
+Якщо не встановлена трубка Піто, то дуже важливо якомога точніше вказати швидкісь літака в режимі CRUZ. Для цього потрібно вивести швидкість на OSD і здійснити тестовий політ. Щоб мінімізувати вплив вітру, потрібно здійснити польоти в протилежних напрямках і вирахувати середнє.
 
-To find out cruise airspeed, make a test flight. Enable ground speed display on OSD. Flight in CRUISE mode in two opposite directions. Take average speed.
+Швидкіть потрібно вказати в см/с. 
 
-Cruise airspeed is specified in cm/s.
+Щоб перевести з км/г до см/с, потрібно домножити на 27.77.
 
-To convert km/h to m/s, multiply by 27.77.
-
-
-Example: 100 km/h = 100 * 27.77 = 2777 cm/s
+Наприклад, 100 км/г = 100 * 27.77 = 2777 см/с
 
 ```set fw_reference_airspeed=2777```
 
-*It is important, that plane fly with specified speed in CRUISE mode. If you have set option "Increase cruise speed with throttle"  - do not use it without GPS Fix.*
+*Важливо, щоб в умовах втрати GPS літак летів з вказаною швидкістю. Якщо у вас налаштовано збільшення Cruise Throttle за допомогою стіку, не використовуйте це в моменти відсутності GPS.*
 
-*If pitot is available, pitot sensor data will be used instead of constant. It is not necessary to specify fw_reference_airspeed. However, it is still adviced to specify for the case of pitot failure.*
+*Але якщо встановлена трубка піто, швидкість буде вираховуватись з даних від трубки піто. Точність навігації підвищиться. Також можна використовувати Cruise throttle override без зниження точності*.
 
-*Note related command: to continue mission without RC signal, see command ```set failsafe_mission_delay=-1```.*
+Якщо є потреба виконувати місії без сигналу керування, вводимо:
 
-**After entering CLI command, make sure that settings are saved:**
+```set failsafe_mission_delay=-1```
+
+**Після введення команд, важливо зберегти налаштування командою:**
 
 ```save```
 
-# Disabling GPS sensor from RC controller
+# Відключення датчика GPS з пульта керування
 
-![](Screenshots/programming_disable_gps_sensor_fix.png) 
+![](Screenshots/gps_off_box.png) 
 
-For testing purposes, it is possible to disable GPS sensor fix from RC controller in programming tab:
+Ця можливість може використовуватись:
+- для тестування навігації без GPS
+- для навмисного відключення GPS в умовах GPS спуфінгу
 
-*GPS can be disabled only after: 1) initial GPS fix is acquired 2) in ARMED mode.*
+*Відключення працює після того, я літак знайде супутники і зафіксує точку повернення, і лише в режимі ARM.*
 
-# Allowing wp missions with GPS Fix estimation
+*Важливо: якщо GPS координати вже спотворені GPS спуфінгом, неможна використовувати автоматичне повернення додому. Відключення треба робити заздалегіть. При спотворенні GPS координат потрібно вийти з зони спуфінгу на ручному керуванні, отримати правильний GPS fix, і лише після цього використовувати RTH. Після спотворення, відключення має сенс робити тільки для нейтралізації негативного впливу спотворення (спуфінг впливає на навігаційні режими і утримання висоти). Але при цьому є ризик втратити сигнал керування, і втратити літак, який буде повертатись в невідомому напрямку, використовуючи останні спотворені координати.*
 
-```failsafe_gps_fix_estimation_delay```
+# Відображення координат з сенсора GPS
 
-Controls whether waypoint mission is allowed to proceed with gps fix estimation. Sets the time delay in seconds between gps fix lost event and RTH activation. Minimum delay is 7 seconds. If set to -1 the mission will continue until the end. With default setting(7), waypoint mission is aborted and switched to RTH with 7 seconds delay. RTH is done with GPS Fix estimation. RTH is trigerred regradless of failsafe procedure selected in configurator.
+В версіі 1.1 додано відображення:
+- кількості супутників з сенсора GPS
+- координат з сенсора GPS
+- різніці координат. Відстань між координатами = похибка естимації
 
-# Expected error (mag + baro)
+Очевидно, що це працює, коли сенсор GPS отримує координати, але примусово відключений за допомогою **GPS OFF Box**.
 
-Realistic expected error is up to 200m per 1km of flight path. In tests, 500m drift per 5km path was seen. 
+Кількість супутників, координати **LAT** та **LON** (не + кодування) відображаються в наступному рядку відносно нормального елементу. Тобто індикатори потрібно розмістити таким чином, щоб у наступному рядку було вільне місце.
 
-To dicrease drift:
-- fly one large circle with GPS available to get good wind estimation
-- use airspeed sensor. If airspeed sensor is not installed, fly in cruise mode without throttle override.
-- do smooth, large turns
-- make sure compass is pointing in nose direction precicely
-- calibrate compass correctly
+Замість індикатора **Glide Distance** відображається різниця координат. Таким чином, відключивши GPS сенсор, є можливість спостерігати накопичення помилки естимації
+*(А якщо помилка різко зросла до декількох кілометрів - GPS сенсор приймає спотворені координати (spoofing))*
 
-This video shows real world test where GPS was disabled occasionally. Wind is 10km/h south-west:
+*Телеметрія та Blackbox отримують естимовані координати. Коли працює естимація - кількість супутників = 99.*
+
+![IMAGE ALT TEXT HERE](gps_fix_estimation_debug_display.jpg)
+
+# LowRace Band
+
+Lowrace band (сітка 5333/5373/5413/5453/5493/5533/5573/5613) можна включити через Smartaudio/IRC Tramp на передавачах, що ії підтримують.
+
+Нажаль, Low Race Band неможливо вибрати в конфігураторі. Це можна зробити в cli ```set vtx_band=6``` або через programming.
+
+# Що містить ця модифікація ?
+
+- INAV 6.0 release
+- підтримку симулятора https://github.com/RomanLut/INAV-X-Plane-HITL
+- можливість навігаціі за умов тимчасової відсутності GPS
+- можливість відключати GPS з пульта керування
+- відображення координат і кількості супутників з відключеного сенсору GPS, відображення помилки естимації координат на OSD
+- пітримку Lowrace Band
 
 
-https://github.com/RomanLut/inav/assets/11955117/0599a3c3-df06-4d40-a32a-4d8f96140592
+# Навіщо це потрібно, Ardupilot давно так може?
 
+Так, і рекомендується використовувати пошивку Ardupilot, яка набагато більше розвинена. Але не всі польотні контролери підтримують Ardupilot. Ця прошивка рекомендується для літаків, які наразі використовують INAV. У будь-якому випадку, краще мати якісь шанси врятувати літак, ніж ніяких.
 
-Purple line shows estimated position. Black line shows real position. "EST ERR" sensor shows estimation error in metters. Estimation is running when satellite icon displays "ES". Estimated position snaps to real position when GPS fix is reaquired.
+# Чи є подібне рішення для квадкоптерів ?
 
+Начасі нажаль немає.
 
-# Is it possible to implement this for multirotor ?
+# Фізичне розташування компасу
 
-There are some ideas, but there is no solution now. We can not make assumptions with multirotor which we can make with a fixed wing.
+Майте на увазі, что компас повинен бути точно направлений у напрямку носу літака. Помилка на 5 градусів дає помилку 87м на кілометр шляху.
+
+# Помилки сенсорів
+
+Навігація без GPS fix можлива лише за умов стабільної роботи сенсорів GPS, Compass та Baro. Сенсор GPS повинен працювати і рапортувати 0 супутників, а не зависати через проблеми з залізом. Прошивка не вирішує проблеми "відпадаючих" сенсорів через завади по живленню!
+
+# Iншi налаштування
+
+## nav_rth_abort_threshold
+Рекомендується відключити ```nav_rth_abort_threshold```, щоб виключити Emergency landing при спуфінгу GPS. Інакше літак може включити Emergency landing під час RTH, якщо спуфінг різко змінив координати.
+
+```set nav_rth_abort_threshold = 0```
+
+## nav_disarm_on_landing
+
+Рекомендується відключити ```nav_disarm_on_landing```, щоб виключити Disarm on landing при спуфінгу GPS. Інакше літак може задізармитись в Failsafe mode, якщо спуфінг "заморозив" координати.
+
+```set nav_disarm_on_landing= off```
 
 
 # Links
 
-INAV HITL  https://github.com/RomanLut/INAV-X-Plane-HITL
+INAV HITL, симулятор https://github.com/RomanLut/INAV-X-Plane-HITL
+
+Аннлогічна прошивка на основі INAV 5.0 https://github.com/RomanLut/inav/blob/5.0.0_gps_fix_estimation/docs/gps_fix_estimation.md
