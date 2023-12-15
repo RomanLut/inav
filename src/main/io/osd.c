@@ -288,7 +288,7 @@ static void osdLeftAlignString(char *buff)
  * prefixed by a a symbol to indicate the unit used.
  * @param dist Distance in centimeters
  */
-static void osdFormatDistanceSymbol(char *buff, int32_t dist, uint8_t decimals)
+static void osdFormatDistanceSymbol(char *buff, uint32_t dist, uint8_t decimals)
 {
     uint8_t digits = 3U;    // Total number of digits (including decimal point)
     uint8_t sym_index = 3U; // Position (index) at buffer of units symbol
@@ -311,6 +311,10 @@ static void osdFormatDistanceSymbol(char *buff, int32_t dist, uint8_t decimals)
         symbol_nm = SYM_MI;
     }
 #endif
+
+    if (dist > 999*1000*100) {
+        dist = 999*1000*100;
+    }
 
     switch ((osd_unit_e)osdConfig()->units) {
     case OSD_UNIT_UK:
