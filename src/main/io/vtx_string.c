@@ -113,7 +113,7 @@ bool vtx58_Freq2Bandchan(uint16_t freq, uint8_t *pBand, uint8_t *pChannel)
 }
 
 // Converts band and channel values to a frequency (in MHz) value.
-// band: Band value (1 to 5).
+// band: Band value (1 to 6).
 // channel:  Channel value (1 to 8).
 // Returns frequency value (in MHz), or 0 if band/channel out of range.
 uint16_t vtx58_Bandchan2Freq(uint8_t band, uint8_t channel)
