@@ -305,4 +305,9 @@ bool pitotIsHealthy(void)
     return (millis() - pitot.lastSeenHealthyMs) < PITOT_HARDWARE_TIMEOUT_MS;
 }
 
+bool pitotIsVirtual(void)
+{
+    return detectedSensors[SENSOR_INDEX_PITOT] == PITOT_VIRTUAL;
+}
+
 #endif /* PITOT */

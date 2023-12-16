@@ -335,7 +335,7 @@ void updateEstimatedGPSFix(void)
     }
 
 #ifdef USE_PITOT
-    if (sensors(SENSOR_PITOT) && pitotIsHealthy()) {
+    if (sensors(SENSOR_PITOT) && pitotIsHealthy() && !pitotIsVirtual()) {
         speed = getAirspeedEstimate();
     }
 #endif
