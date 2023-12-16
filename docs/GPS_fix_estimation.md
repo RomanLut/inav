@@ -272,7 +272,7 @@ https://github.com/RomanLut/inav/assets/11955117/0599a3c3-df06-4d40-a32a-4d8f961
 
 Рекомендується відключити ```nav_disarm_on_landing```, щоб виключити Disarm on landing при спуфінгу GPS. Інакше літак може задізармитись в Failsafe mode, якщо спуфінг "заморозив" координати.
 
-```set nav_disarm_on_landing= off```
+```set nav_disarm_on_landing = off```
 
 
 # Links
