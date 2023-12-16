@@ -46,7 +46,7 @@
 
 #### Конфігуратор
 
-Конфігуратор можна завантажити тут https://github.com/RomanLut/inav-configurator/tree/7.0.0_gps_fix_estimation/apps
+Конфігуратор можна завантажити тут https://github.com/RomanLut/inav-configurator/tree/7.0.0_gps_fix_estimation/Release
 
 або самостійно зібрати з branch https://github.com/RomanLut/inav-configurator/tree/7.0.0_gps_fix_estimation
 
@@ -72,7 +72,7 @@
 - виправлення встановлення Default settings https://github.com/iNavFlight/inav-configurator/pull/1922
 - операцію **Disable GPS Fix** в Programming
 - можливість вибирати Lowrace Band
-- SITL з виправленнями (для Windows та Linux, але без MacOs).
+- SITL з виправленнями (тільки для Windows).
     
 # Як це працює ?
 
