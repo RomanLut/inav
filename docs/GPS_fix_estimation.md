@@ -61,7 +61,7 @@
 - додана можливість навігації за умов відсутності GPS fix, можливість примусово відключати датчик GPS з пульту
 - додана підтримка Lowrace Band(6), додана можливість нанаштування сітки частот Band 5, Band 6
 - **RC_CHANNEL_OVERRIDE** в progamming може керувати **Roll**, **Pitch**, **Yaw**, **Throltle** каналами в режимі **Failsafe**
-- ```nav_rth_abort_threshold=0``` та ```nav_disarm_on_landing= off``` встановлені за замовчуванням.
+- ```nav_rth_abort_threshold = 0``` та ```nav_disarm_on_landing = off``` встановлені за замовчуванням.
 - включає деякі виправлення SITL
 - custom target MATEKF405TE_SD_S9_S10_PINIO3_PINIO4 ( S9 та S10 перероблені в PINIO3, PINIO4 ).
 
