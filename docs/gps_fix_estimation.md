@@ -1,3 +1,6 @@
+# Доступна нова прошивка на основі Inav 7.0 https://github.com/RomanLut/inav/blob/7.0.0_gps_fix_estimation/docs/GPS_fix_estimation.md
+
+
 # Опис
 
 Відео демонстрація:
