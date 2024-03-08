@@ -3993,7 +3993,7 @@ static navigationFSMEvent_t selectNavEventFromBoxModeInput(void)
         canActivateWaypoint = false;
 
         // Launch mode can be activated if feature FW_LAUNCH is enabled or BOX is turned on prior to arming (avoid switching to LAUNCH in flight)
-        canActivateLaunchMode = isNavLaunchEnabled() && (!sensors(SENSOR_GPS) || (sensors(SENSOR_GPS) && !isGPSHeadingValid()));
+        canActivateLaunchMode = isNavLaunchEnabled() && (!sensors(SENSOR_GPS) || STATE(GPS_ESTIMATED_FIX) || (sensors(SENSOR_GPS) && !isGPSHeadingValid()));
     }
 
     return NAV_FSM_EVENT_SWITCH_TO_IDLE;
