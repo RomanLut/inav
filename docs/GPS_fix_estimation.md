@@ -32,7 +32,7 @@
 
 # Завантаження
 
-### Версія: 1.1
+### Версія: 1.2
 
 #### Прошивка
 Прошивку можна завантажити тут https://github.com/RomanLut/inav/tree/7.0.0_gps_fix_estimation/firmware
@@ -51,6 +51,11 @@
 
 
 ### Історія змін
+
+* **1.2 ======**
+ 
+- виправлено: не працює Set LED pin PWM функція в Programming https://github.com/RomanLut/inav/blob/7.0.0_gps_fix_estimation/docs/LED%20pin%20PWM.md
+- додано прошивку Gravity F7
 
 * **1.1 ======**
  
