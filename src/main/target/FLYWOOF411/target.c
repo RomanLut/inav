@@ -34,9 +34,9 @@ timerHardware_t timerHardware[] = {
 //    DEF_TIM(TIM1, CH3, PA10, TIM_USE_MC_MOTOR | TIM_USE_FW_SERVO,  0, 0), // S3_OUT   Timer: 1,3
     DEF_TIM(TIM3, CH3, PB0,  TIM_USE_MC_MOTOR | TIM_USE_FW_MOTOR,  0, 0), // S4_OUT   Timer: 1,2 or 3,3
 
-//    DEF_TIM(TIM2, CH1, PA15, TIM_USE_ANY,   0, 0), //Board LED pin,  SoftUART2 RX/TX      Timer: 2,1
+    DEF_TIM(TIM2, CH1, PA15, TIM_USE_ANY,   0, 0), //Board LED pin,  SoftSerial1 TX      Timer: 2,1
 
-//    DEF_TIM(TIM5, CH2, PA1,  TIM_USE_ANY,   0, 0) //Board CURRENT pin,  SoftSerial1 RX  Timer: 2,2 or 5,2   
+    DEF_TIM(TIM5, CH2, PA1,  TIM_USE_ANY,   0, 0) //Board CURRENT pin,  SoftSerial1 RX  Timer: 2,2 or 5,2   
 
 //    DEF_TIM(TIM5, CH4, PA3,  TIM_USE_PPM,   0, 1), // PPM on RX2  Timer: 2,4 or 5,4 or 9,2   
 //    DEF_TIM(TIM3, CH4, PB1,  TIM_USE_ANY,   0, 0), //Board RSSI PIN,  Timer: 1,3 or 3,4

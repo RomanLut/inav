@@ -100,7 +100,11 @@
 #define UART2_TX_PIN            PA2
 #define UART2_RX_PIN            PA3
 
-#define SERIAL_PORT_COUNT       3       // VCP, USART1, USART2
+#define USE_SOFTSERIAL1
+#define SOFTSERIAL_1_TX_PIN     PA15    // TX LED 
+#define SOFTSERIAL_1_RX_PIN     PA1     // RX Current
+
+#define SERIAL_PORT_COUNT       4       // VCP, USART1, USART2, SortUART1
 
 #define DEFAULT_RX_TYPE         RX_TYPE_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
