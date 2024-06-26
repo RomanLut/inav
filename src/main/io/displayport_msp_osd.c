@@ -499,7 +499,7 @@ displayPort_t* mspOsdDisplayPortInit(const videoSystem_e videoSystem)
 static mspResult_e processMspCommand(mspPacket_t *cmd, mspPacket_t *reply, mspPostProcessFnPtr *mspPostProcessFn)
 {
     if ((vtxSeen && !vtxActive) || (cmd->cmd == MSP_EEPROM_WRITE)) {
-        vtxReset = true;
+        //vtxReset = true;
     }
 
     vtxSeen = vtxActive = true;
