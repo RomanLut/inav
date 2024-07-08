@@ -34,7 +34,7 @@ set(SITL_LINK_OPTIONS
     -Wl,-L${STM32_LINKER_DIR}
 )
 
-if(${WIN32} OR ${CYGWIN})
+if(${CYGWIN})
     set(SITL_LINK_OPTIONS ${SITL_LINK_OPTIONS} "-static-libgcc")
 endif()
 
