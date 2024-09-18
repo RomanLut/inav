@@ -2175,6 +2175,8 @@ static bool osdDrawSingleElement(uint8_t item)
         {
             int32_t alt = osdGetAltitudeMsl();
             osdFormatAltitudeSymbol(buff, alt);
+            osdFormatAltitudeSymbol(buff2, ( gpsSol2.fixType == GPS_FIX_3D ) ? gpsSol2.llh.alt : 0);
+		    buff2[0] = '#';
             break;
         }
 
