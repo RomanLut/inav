@@ -35,17 +35,17 @@
 ### Версія: 1.0
 
 #### Прошивка
-Прошивку можна завантажити тут https://github.com/RomanLut/inav/tree/7.0.0_gps_fix_estimation/firmware
+Прошивку можна завантажити тут https://github.com/RomanLut/inav/tree/8.0.0_gps_fix_estimation/firmware
 
-або самостійно зібрати з branch https://github.com/RomanLut/inav/tree/7.0.0_gps_fix_estimation
+або самостійно зібрати з branch https://github.com/RomanLut/inav/tree/8.0.0_gps_fix_estimation
 
-*Перехід з будь-якої іншої прошивки, включаючи офіційну 7.0, треба здійснювати через **Full Chip Erase***
+*Перехід з будь-якої іншої прошивки, включаючи офіційну 8.0, треба здійснювати через **Full Chip Erase***
 
 #### Конфігуратор
 
-Конфігуратор можна завантажити тут https://github.com/RomanLut/inav-configurator/tree/7.0.0_gps_fix_estimation/Release
+Конфігуратор можна завантажити тут https://github.com/RomanLut/inav-configurator/tree/8.0.0_gps_fix_estimation/Release
 
-або самостійно зібрати з branch https://github.com/RomanLut/inav-configurator/tree/7.0.0_gps_fix_estimation
+або самостійно зібрати з branch https://github.com/RomanLut/inav-configurator/tree/8.0.0_gps_fix_estimation
 
 *(файли прошивок потрібно завантажувати локально і використовувати **[Load Local Firmware]***)*
 
@@ -56,18 +56,18 @@
 
 Перший реліз на основі inav 8.0.
 
-Основні відмінності від офіційної версії inav 8.0:
+Офіційна прошивка 8.0 вже має режим inav_allow_gps_fix_estimation. Основні відмінності від офіційної версії inav 8.0:
 
-- додано режим ON_SAFE_HOME
+- додано режим ```inav_allow_gps_fix_estimation = ON_SAFE_HOME```
 - додана підтримка Lowrace Band(6), додана можливість нанаштування сітки частот Band 5, Band 6
 - **RC_CHANNEL_OVERRIDE** в progamming може керувати **Roll**, **Pitch**, **Yaw**, **Throltle** каналами в режимі **Failsafe**
 - ```nav_rth_abort_threshold = 0``` та ```nav_disarm_on_landing = off``` встановлені за замовчуванням.
 - custom target MATEKF405TE_SD_S9_S10_PINIO3_PINIO4 ( S9 та S10 перероблені в PINIO3, PINIO4 ).
+- Оцінка вітру(wind estimation) ніколи не втрачає чинності (втрачає чинність через 15 хвилин у офіційній прошивці)
 - TODO
 
 Конфігуратор включає:
 - можливість вибирати Lowrace Band в Configuration
-- TODO
     
 # Як це працює ?
 
@@ -197,18 +197,14 @@ https://github.com/RomanLut/inav/assets/11955117/0599a3c3-df06-4d40-a32a-4d8f961
 
 ***Дуже рекомендується провести тренування в симуляторі для вивчення всіх режимів https://github.com/RomanLut/INAV-X-Plane-HITL***
 
-# Відключення датчика GPS з пульта керування або Programming
-Датчик GPS можна відключити за допомогою каналу керування, або через программінг (датчик відключений, якщо активований **GPS OFF BOX** АБО виконана операція **Disable GPS Fix, value=1**)
-
-![](Screenshots/gps_off_box.png) 
+# Відключення датчика GPS з пульта керування
+Датчик GPS можна відключити за допомогою каналу керування з допомогою вкладки программінг. Датчик відключений, якщо виконана операція **Disable GPS Fix, value=1**.
 
 ![](Screenshots/programming_disable_gps_sensor_fix.png) 
 
 Ця можливість може використовуватись:
 - для тестування навігації без GPS
 - для навмисного відключення GPS в умовах GPS спуфінгу
-
-*Операція **Disable GPS fix** в Programming недоступна в офіційному релізі конфігуратора.*
 
 *Важливо: якщо GPS координати вже спотворені GPS спуфінгом, неможна використовувати автоматичне повернення додому. Відключення треба робити заздалегіть. При спотворенні GPS координат потрібно вийти з зони спуфінгу на ручному керуванні, отримати правильний GPS fix, і лише після цього використовувати RTH. Після спотворення, відключення має сенс робити тільки для нейтралізації негативного впливу спотворення (спуфінг впливає на навігаційні режими і утримання висоти). Але при цьому є ризик втратити сигнал керування, і втратити літак, який буде повертатись в невідомому напрямку, використовуючи останні спотворені координати.*
 
@@ -222,7 +218,7 @@ https://github.com/RomanLut/inav/assets/11955117/0599a3c3-df06-4d40-a32a-4d8f961
 - **3Dxx** - 3D Fix
 - **2Dxx** - 2D Fix
 - **--** - сенсор не знайшов супутники
-- **HWFA** - сенсор не працює (польотний контроллер не отримуе відповіть від  сенсору, "GPS Hardware Failure").
+- **HWFA** - сенсор не працює (польотний контроллер не отримує відповіть від  сенсору, "GPS Hardware Failure").
 
 Замість індикатора **Glide Range** відображається різниця координат. Відстань між координатами = похибка естимації. Таким чином, відключивши GPS сенсор, є можливість спостерігати накопичення помилки естимації
 *(А якщо помилка різко зросла до декількох кілометрів - GPS сенсор приймає спотворені координати (spoofing))*
@@ -289,5 +285,6 @@ https://github.com/RomanLut/inav/assets/11955117/0599a3c3-df06-4d40-a32a-4d8f961
 
 INAV HITL, симулятор https://github.com/RomanLut/INAV-X-Plane-HITL
 
+Аналогічна прошивка на основі INAV 7.0 https://github.com/RomanLut/inav/blob/7.0.0_gps_fix_estimation/docs/gps_fix_estimation.md
 Аналогічна прошивка на основі INAV 6.0 https://github.com/RomanLut/inav/blob/6.0.0_gps_fix_estimation/docs/gps_fix_estimation.md
 Аналогічна прошивка на основі INAV 5.0 https://github.com/RomanLut/inav/blob/5.0.0_gps_fix_estimation/docs/gps_fix_estimation.md
