@@ -34,7 +34,6 @@
 
 typedef enum {
     GPS_UBLOX = 0,
-    GPS_UBLOX7PLUS,
     GPS_MSP,
     GPS_FAKE,
     GPS_PROVIDER_COUNT
@@ -76,8 +75,12 @@ typedef enum {
 
 typedef enum {
     GPS_DYNMODEL_PEDESTRIAN = 0,
+    GPS_DYNMODEL_AUTOMOTIVE,
     GPS_DYNMODEL_AIR_1G,
+    GPS_DYNMODEL_AIR_2G,
     GPS_DYNMODEL_AIR_4G,
+    GPS_DYNMODEL_SEA,
+    GPS_DYNMODEL_MOWER,
 } gpsDynModel_e;
 
 typedef enum {

@@ -104,13 +104,6 @@ static gpsProviderDescriptor_t gpsProviders[GPS_PROVIDER_COUNT] = {
     { false, 0, NULL, NULL },
 #endif
 
-    /* UBLOX7PLUS binary */
-#ifdef USE_GPS_PROTO_UBLOX
-    { false, MODE_RXTX, &gpsRestartUBLOX, &gpsHandleUBLOX },
-#else
-    { false, 0,  NULL, NULL },
-#endif
-
     /* MSP GPS */
 #ifdef USE_GPS_PROTO_MSP
     { true, 0, &gpsRestartMSP, &gpsHandleMSP },
@@ -251,7 +244,7 @@ void processDisableGPSFix(void)
     static int32_t last_lon = 0;
     static int32_t last_alt = 0;
 
-    if (LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_DISABLE_GPS_FIX) || IS_RC_MODE_ACTIVE(BOXGPSOFF)) {
+    if (LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_DISABLE_GPS_FIX)) {
         gpsSol.fixType = GPS_NO_FIX;
         gpsSol.hdop = 9999;
         gpsSol.numSat = 0;

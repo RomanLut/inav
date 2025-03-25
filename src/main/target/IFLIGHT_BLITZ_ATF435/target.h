@@ -69,6 +69,13 @@
 #define BMI270_SPI_BUS          BUS_SPI1
 #define BMI270_CS_PIN           PA4
 
+// ICM42605/ICM42688P
+#define USE_IMU_ICM42605
+#define IMU_ICM42605_ALIGN      CW0_DEG
+#define ICM42605_SPI_BUS        BUS_SPI1
+#define ICM42605_CS_PIN         PA4
+
+
 // Other sensors
 
 #define USE_BARO
@@ -152,6 +159,6 @@
 #define TARGET_IO_PORTD             0xffff
 #define TARGET_IO_PORTE             BIT(2)
 
-#define MAX_PWM_OUTPUT_PORTS        4
+#define MAX_PWM_OUTPUT_PORTS        8
 #define USE_DSHOT
 #define USE_ESC_SENSOR

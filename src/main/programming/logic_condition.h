@@ -83,7 +83,8 @@ typedef enum {
     LOGIC_CONDITION_APPROX_EQUAL                = 51,
     LOGIC_CONDITION_LED_PIN_PWM                 = 52,
     LOGIC_CONDITION_DISABLE_GPS_FIX             = 53,
-    LOGIC_CONDITION_LAST                        = 54,
+    LOGIC_CONDITION_RESET_MAG_CALIBRATION       = 54,
+    LOGIC_CONDITION_LAST                        = 55,
 } logicOperation_e;
 
 typedef enum logicOperandType_s {
@@ -128,8 +129,8 @@ typedef enum {
     LOGIC_CONDITION_OPERAND_FLIGHT_STABILIZED_PITCH,                        // 26
     LOGIC_CONDITION_OPERAND_FLIGHT_STABILIZED_YAW,                          // 27
     LOGIC_CONDITION_OPERAND_FLIGHT_3D_HOME_DISTANCE,                        // 28
-    LOGIC_CONDITION_OPERAND_FLIGHT_CRSF_LQ,                                 // 29
-    LOGIC_CONDITION_OPERAND_FLIGHT_CRSF_SNR,                                // 39
+    LOGIC_CONDITION_OPERAND_FLIGHT_LQ_UPLINK,                               // 29
+    LOGIC_CONDITION_OPERAND_FLIGHT_SNR,                                     // 39
     LOGIC_CONDITION_OPERAND_FLIGHT_GPS_VALID, // 0/1                        // 31
     LOGIC_CONDITION_OPERAND_FLIGHT_LOITER_RADIUS,                           // 32
     LOGIC_CONDITION_OPERAND_FLIGHT_ACTIVE_PROFILE, //int                    // 33
@@ -140,6 +141,11 @@ typedef enum {
     LOGIC_CONDITION_OPERAND_FLIGHT_ACTIVE_MIXER_PROFILE, //int              // 38
     LOGIC_CONDITION_OPERAND_FLIGHT_MIXER_TRANSITION_ACTIVE, //0,1           // 39
     LOGIC_CONDITION_OPERAND_FLIGHT_ATTITUDE_YAW, // deg                     // 40
+    LOGIC_CONDITION_OPERAND_FLIGHT_FW_LAND_STATE,                           // 41
+    LOGIC_CONDITION_OPERAND_FLIGHT_BATT_PROFILE, // int                     // 42
+    LOGIC_CONDITION_OPERAND_FLIGHT_FLOWN_LOITER_RADIUS,                     // 43
+    LOGIC_CONDITION_OPERAND_FLIGHT_LQ_DOWNLINK,                             // 44
+    LOGIC_CONDITION_OPERAND_FLIGHT_UPLINK_RSSI_DBM,                         // 45
 } logicFlightOperands_e;
 
 typedef enum {
@@ -245,9 +251,9 @@ extern uint64_t logicConditionsGlobalFlags;
 
 void logicConditionProcess(uint8_t i);
 
-int logicConditionGetOperandValue(logicOperandType_e type, int operand);
+int32_t logicConditionGetOperandValue(logicOperandType_e type, int operand);
 
-int logicConditionGetValue(int8_t conditionId);
+int32_t logicConditionGetValue(int8_t conditionId);
 void logicConditionUpdateTask(timeUs_t currentTimeUs);
 void logicConditionReset(void);
 
