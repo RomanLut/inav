@@ -1,5 +1,5 @@
  >[!CAUTION]
- >WORK IN PROGRESS !!! 
+ > Ця прошивка протестована лише в симуляторі. Перевірена прошивка на inav 7.0: https://github.com/RomanLut/inav/blob/7.0.0_gps_fix_estimation/docs/GPS_fix_estimation.md
 
 # Опис
 
