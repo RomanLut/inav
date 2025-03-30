@@ -1,5 +1,5 @@
  >[!CAUTION]
- >WORK IN PROGRESS !!! 
+ > Ця прошивка протестована лише в симуляторі. Перевірена прошивка на inav 7.0: https://github.com/RomanLut/inav/blob/7.0.0_gps_fix_estimation/docs/GPS_fix_estimation.md
 
 # Опис
 
@@ -65,6 +65,7 @@
 - ```nav_rth_abort_threshold = 0``` та ```nav_disarm_on_landing = off``` встановлені за замовчуванням.
 - custom target ```MATEKF405TE_SD_S9_S10_PINIO3_PINIO4``` ( ```S9``` та ```S10``` перероблені в ```PINIO3```, ```PINIO4``` ).
 - Оцінка вітру (wind estimation) ніколи не втрачає чинності (втрачає чинність через 15 хвилин у офіційній прошивці)
+- додано відображенння координат і супутниквів з (відключеного)  датчика GPS, відображення похибки естимаці (див. нижче **Відображення на OSD**)
 
 Конфігуратор включає:
 - можливість вибирати ***Lowrace Band*** в Configuration
