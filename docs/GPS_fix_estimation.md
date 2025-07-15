@@ -33,7 +33,7 @@
 
 # Завантаження
 
-### Версія: 1.0
+### Версія: 1.1
 
 #### Прошивка
 Прошивку можна завантажити тут https://github.com/RomanLut/inav/tree/8.0.0_gps_fix_estimation/firmware
@@ -55,6 +55,10 @@
 
 
 ### Історія змін
+
+* **1.1 ======**
+
+- виправлено: Firmware crash when OSD is disabled but MSP Display UART is allocated https://github.com/iNavFlight/inav/pull/10792
 
 * **1.0 ======**
 
