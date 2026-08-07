@@ -23,10 +23,22 @@
 #include "drivers/bus.h"
 #include "drivers/pwm_mapping.h"
 
+#ifdef FLYWOOF411_DFSpirit2s
+#include "fc/fc_msp_box.h"
+#include "io/piniobox.h"
+#endif
 
 timerHardware_t timerHardware[] = {
     // DEF_TIM(TIM9, CH1, PA2,   TIM_USE_PPM,   0, 0), // PPM IN
-#ifdef FLYWOOF411_V2
+#ifdef FLYWOOF411_DFSpirit2s
+    DEF_TIM(TIM1, CH1, PA8,  TIM_USE_OUTPUT_AUTO, 0, 1), // S1_OUT
+    DEF_TIM(TIM1, CH2, PA9,  TIM_USE_OUTPUT_AUTO, 0, 1), // S2_OUT
+    DEF_TIM(TIM1, CH3, PA10, TIM_USE_OUTPUT_AUTO, 0, 0), // S3_OUT
+    DEF_TIM(TIM3, CH3, PB0,  TIM_USE_MOTOR,       0, 0), // S4_OUT
+
+    DEF_TIM(TIM2, CH1, PA15, TIM_USE_ANY,         0, 0), // LED pad, SoftSerial1 TX
+    DEF_TIM(TIM5, CH2, PA1,  TIM_USE_ANY,         0, 0), // Current pad, SoftSerial1 RX
+#elif defined(FLYWOOF411_V2)
     DEF_TIM(TIM1,  CH1, PA8,  TIM_USE_OUTPUT_AUTO, 0, 1),      // S1 - D(2,1)
     DEF_TIM(TIM2,  CH2, PB3,  TIM_USE_OUTPUT_AUTO, 0, 0),      // S2 - D(1,6)
     DEF_TIM(TIM2,  CH3, PB10, TIM_USE_OUTPUT_AUTO, 0, 0),      // S3 - D(1,1)
@@ -49,3 +61,10 @@ timerHardware_t timerHardware[] = {
 };
 
 const int timerHardwareCount = sizeof(timerHardware) / sizeof(timerHardware[0]);
+
+#ifdef FLYWOOF411_DFSpirit2s
+void targetConfiguration(void)
+{
+    pinioBoxConfigMutable()->permanentId[0] = BOX_PERMANENT_ID_USER1;
+}
+#endif

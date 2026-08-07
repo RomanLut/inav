@@ -17,7 +17,10 @@
 
 #pragma once
 
-#ifdef FLYWOOF411_V2
+#ifdef FLYWOOF411_DFSpirit2s
+#define TARGET_BOARD_IDENTIFIER "FW41"
+#define USBD_PRODUCT_STRING     "FLYWOOF411_DFSpirit2s"
+#elif defined(FLYWOOF411_V2)
 #define TARGET_BOARD_IDENTIFIER "FW42"
 #define USBD_PRODUCT_STRING     "FLYWOOF411V2"
 #else
@@ -97,7 +100,7 @@
 #endif
 
 #define USE_UART2
-#ifdef FLYWOOF411_V2
+#if defined(FLYWOOF411_V2) || defined(FLYWOOF411_DFSpirit2s)
 #define UART2_TX_PIN            PA2
 #else
 #define UART2_TX_PIN            NONE    //PA2
@@ -108,6 +111,9 @@
 #ifdef FLYWOOF411_V2
 #define SOFTSERIAL_1_TX_PIN     PB6     // Clash with TX2, possible to use as S.Port or VTX control
 #define SOFTSERIAL_1_RX_PIN     PB7
+#elif defined(FLYWOOF411_DFSpirit2s)
+#define SOFTSERIAL_1_TX_PIN     PA15    // Board LED pin
+#define SOFTSERIAL_1_RX_PIN     PA1     // Board current pin
 #else
 #define SOFTSERIAL_1_TX_PIN     PA2     // Clash with TX2, possible to use as S.Port or VTX control
 #define SOFTSERIAL_1_RX_PIN     PA2
@@ -125,26 +131,44 @@
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                    ADC1
+#ifndef FLYWOOF411_DFSpirit2s
 #define ADC_CHANNEL_1_PIN               PA1
+#endif
 #ifdef FLYWOOF411_V2
 #define ADC_CHANNEL_2_PIN               PB1
 #define ADC_CHANNEL_3_PIN               PB0
 #else
 #define ADC_CHANNEL_2_PIN               PA0
+#ifndef FLYWOOF411_DFSpirit2s
 #define ADC_CHANNEL_3_PIN               PB1
 #endif
+#endif
 
+#ifndef FLYWOOF411_DFSpirit2s
 #define CURRENT_METER_ADC_CHANNEL       ADC_CHN_1
+#endif
 #define VBAT_ADC_CHANNEL                ADC_CHN_2
+#ifndef FLYWOOF411_DFSpirit2s
 #define RSSI_ADC_CHANNEL                ADC_CHN_3
+#endif
 
 // *************** LED2812 ************************
+#ifndef FLYWOOF411_DFSpirit2s
 #define USE_LED_STRIP
 #ifdef FLYWOOF411_V2
 #define WS2811_PIN                      PA0
 #else
 #define WS2811_PIN                      PA15
 #endif
+#endif
+
+// *************** PINIO ***************************
+#ifdef FLYWOOF411_DFSpirit2s
+#define USE_PINIO
+#define USE_PINIOBOX
+#define PINIO1_PIN                      PB1     // Board RSSI pin
+#endif
+
 // ***************  OTHERS *************************
 #define DEFAULT_FEATURES                (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_VBAT | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
 
