@@ -109,6 +109,8 @@
 #define OSD_MSG_AUTOLAUNCH          "AUTOLAUNCH"
 #define OSD_MSG_AUTOLAUNCH_MANUAL   "AUTOLAUNCH (MANUAL)"
 #define OSD_MSG_ALTITUDE_HOLD       "(ALTITUDE HOLD)"
+#define OSD_MSG_SURFACE_OK          "(SURFACE)"
+#define OSD_MSG_SURFACE_BAD         "(!SURFACE UNRELIABLE!)"
 #define OSD_MSG_AUTOTRIM            "(AUTOTRIM)"
 #define OSD_MSG_AUTOTUNE            "(AUTOTUNE)"
 #define OSD_MSG_AUTOTUNE_ACRO       "SWITCH TO ACRO"
@@ -130,6 +132,44 @@
 #if defined(USE_SAFE_HOME)
 #define OSD_MSG_DIVERT_SAFEHOME     "DIVERTING TO SAFEHOME"
 #define OSD_MSG_LOITERING_SAFEHOME  "LOITERING AROUND SAFEHOME"
+#endif
+
+#if defined(USE_GEOZONE)
+#define OSD_MSG_NFZ                 "NO FLY ZONE"
+#define OSD_MSG_LEAVING_FZ          "LEAVING FZ IN %s"
+#define OSD_MSG_OUTSIDE_FZ          "OUTSIDE FZ"
+#define OSD_MSG_ENTERING_NFZ        "ENTERING NFZ IN %s %s"
+#define OSD_MSG_AVOIDING_FB         "AVOIDING FENCE BREACH"
+#define OSD_MSG_RETURN_TO_ZONE      "RETURN TO FZ"
+#define OSD_MSG_FLYOUT_NFZ          "FLY OUT NFZ"
+#define OSD_MSG_AVOIDING_ALT_BREACH "REACHED ZONE ALTITUDE LIMIT"
+#define OSD_MSG_AVOID_ZONES_RTH     "AVOIDING NO FLY ZONES"
+#define OSD_MSG_GEOZONE_ACTION      "PERFORM ACTION IN %s %s"
+#endif
+
+#ifdef USE_ADSB
+static const char* const ADSB_EMITTER_TYPE_STRINGS[] = {
+        "NOINFO",  //  0 - No information about the emitter type
+        "LIGHT ",  //  1 - Light aircraft
+        "SMALL ",  //  2 - Small aircraft
+        "LARGE ",  //  3 - Large aircraft
+        "HVLARG",  //  4 - High vortex large
+        "HEAVY ",  //  5 - Heavy aircraft
+        "HMANUV",  //  6 - Highly maneuverable aircraft
+        "ROTORC",  //  7 - Rotocraft (e.g., helicopter)
+        "UNASGN",  //  8 - Unassigned type
+        "GLIDER",  //  9 - Glider
+        "LTAIR ",  // 10 - Lighter-than-air aircraft
+        "PARACH",  // 11 - Parachute
+        "ULTLIT",  // 12 - Ultra light aircraft
+        "UNASG2",  // 13 - Unassigned 2
+        "UAV   ",  // 14 - Unmanned Aerial Vehicle (drone)
+        "SPACE ",  // 15 - Spacecraft
+        "UNASG3",  // 16 - Unassigned 3
+        "EMRSUR",  // 17 - Emergency surface vehicle
+        "SERSUR",  // 18 - Service surface vehicle
+        "POBSTC",  // 19 - Point obstacle
+};
 #endif
 
 typedef enum {
@@ -159,7 +199,7 @@ typedef enum {
     OSD_HOME_DIST,
     OSD_HEADING,
     OSD_VARIO,
-    OSD_VARIO_NUM,
+    OSD_VERTICAL_SPEED_INDICATOR,
     OSD_AIR_SPEED,
     OSD_ONTIME_FLYTIME,
     OSD_RTC_TIME,
@@ -242,10 +282,10 @@ typedef enum {
     OSD_ESC_RPM,
     OSD_ESC_TEMPERATURE,
     OSD_AZIMUTH,
-    OSD_CRSF_RSSI_DBM,
-    OSD_CRSF_LQ,
-    OSD_CRSF_SNR_DB,
-    OSD_CRSF_TX_POWER,
+    OSD_RSSI_DBM,
+    OSD_LQ_UPLINK,
+    OSD_SNR_DB,
+    OSD_TX_POWER_UPLINK,
     OSD_GVAR_0,
     OSD_GVAR_1,
     OSD_GVAR_2,
@@ -291,7 +331,17 @@ typedef enum {
     OSD_CUSTOM_ELEMENT_5,
     OSD_CUSTOM_ELEMENT_6,
     OSD_CUSTOM_ELEMENT_7,
-    OSD_CUSTOM_ELEMENT_8, // 158
+    OSD_CUSTOM_ELEMENT_8,
+    OSD_LQ_DOWNLINK,
+    OSD_RX_POWER_DOWNLINK, // 160
+    OSD_RX_BAND,
+    OSD_RX_MODE,
+    OSD_COURSE_TO_FENCE,
+    OSD_H_DIST_TO_FENCE,
+    OSD_V_DIST_TO_FENCE,
+    OSD_NAV_FW_ALT_CONTROL_RESPONSE,
+    OSD_NAV_MIN_GROUND_SPEED,
+    OSD_THROTTLE_GAUGE,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -335,6 +385,11 @@ typedef enum {
 } osd_alignment_e;
 
 typedef enum {
+    OSD_ADSB_WARNING_STYLE_COMPACT,
+    OSD_ADSB_WARNING_STYLE_EXTENDED,
+} osd_adsb_warning_style_e;
+
+typedef enum {
     OSD_AHI_STYLE_DEFAULT,
     OSD_AHI_STYLE_LINE,
 } osd_ahi_style_e;
@@ -344,6 +399,13 @@ typedef enum {
     OSD_CRSF_LQ_TYPE2,
     OSD_CRSF_LQ_TYPE3
 } osd_crsf_lq_format_e;
+
+typedef enum {
+    OSD_SPEED_TYPE_GROUND,
+    OSD_SPEED_TYPE_AIR,
+    OSD_SPEED_TYPE_3D,
+    OSD_SPEED_TYPE_MIN_GROUND,
+} osd_SpeedTypes_e;
 
 typedef struct osdLayoutsConfig_s {
     // Layouts
@@ -369,7 +431,7 @@ typedef struct osdConfig_s {
     float           gforce_alarm;
     float           gforce_axis_alarm_min;
     float           gforce_axis_alarm_max;
-#ifdef USE_SERIALRX_CRSF
+#if defined(USE_SERIALRX_CRSF) || defined(USE_RX_MSP)
     int8_t          snr_alarm;                          //CRSF SNR alarm in dB
     int8_t          link_quality_alarm;
     int16_t         rssi_dbm_alarm;                     // in dBm
@@ -394,6 +456,8 @@ typedef struct osdConfig_s {
 
     // Preferences
     uint8_t         main_voltage_decimals;
+    uint8_t         decimals_altitude;
+    uint8_t         decimals_distance;
     uint8_t         ahi_reverse_roll;
     uint8_t         ahi_max_pitch;
     uint8_t         crosshairs_style;                   // from osd_crosshairs_style_e
@@ -441,7 +505,7 @@ typedef struct osdConfig_s {
     uint8_t         right_sidebar_scroll_step;          // Same as left_sidebar_scroll_step, but for the right sidebar.
     bool            osd_home_position_arm_screen;
     uint8_t         pan_servo_index;                    // Index of the pan servo used for home direction offset
-    int8_t          pan_servo_pwm2centideg;             // Centidegrees of servo rotation per us pwm
+    int8_t          osd_pan_servo_range_decadegrees;    // Decadegrees of servo rotation
     uint8_t         pan_servo_offcentre_warning;        // Degrees around the centre, that is assumed camera is wanted to be facing forwards, but isn't centred
     bool            pan_servo_indicator_show_degrees;   // Show the degrees of offset for the pan servo
     uint8_t         crsf_lq_format;
@@ -466,18 +530,28 @@ typedef struct osdConfig_s {
 #ifndef DISABLE_MSP_DJI_COMPAT
     bool            highlight_djis_missing_characters;  // If enabled, show question marks where there is no character in DJI's font to represent an OSD element symbol
 #endif
- #ifdef USE_ADSB
-    uint16_t adsb_distance_warning;                     // in metres
-    uint16_t adsb_distance_alert;                       // in metres
-    uint16_t adsb_ignore_plane_above_me_limit;          // in metres
- #endif
+    bool            enable_broken_o4_workaround;        // If enabled, override STATUS/STATUS_EX messages to work around DJI's broken O4 air unit MSP DisplayPort implementation
+#ifdef USE_ADSB
+    uint16_t                    adsb_distance_warning;                     // in metres
+    uint16_t                    adsb_distance_alert;                       // in metres
+    uint16_t                    adsb_ignore_plane_above_me_limit;          // in metres
+    osd_adsb_warning_style_e    adsb_warning_style;       // adsb warning element style, one or two lines
+#endif
     uint8_t  radar_peers_display_time;                  // in seconds
+#ifdef USE_GEOZONE
+    uint8_t geozoneDistanceWarning;                     // Distance to fence or action
+    bool geozoneDistanceType;                            // Shows a countdown timer or distance to fence/action
+#endif
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);
 
 typedef struct displayPort_s displayPort_t;
 typedef struct displayCanvas_s displayCanvas_t;
+
+void osdDrawCustomItem(uint8_t item);
+void osdEraseCustomItem(uint8_t item);
+unsigned getCurrentLayout(void);
 
 void osdInit(displayPort_t *osdDisplayPort);
 bool osdDisplayIsPAL(void);
@@ -509,11 +583,9 @@ void osdShowEEPROMSavedNotification(void);
 void osdCrosshairPosition(uint8_t *x, uint8_t *y);
 bool osdFormatCentiNumber(char *buff, int32_t centivalue, uint32_t scale, int maxDecimals, int maxScaledDecimals, int length, bool leadingZeros);
 void osdFormatAltitudeSymbol(char *buff, int32_t alt);
-void osdFormatVelocityStr(char* buff, int32_t vel, bool _3D, bool _max);
+int osdFormatVelocityStr(char* buff, int32_t vel, osd_SpeedTypes_e speedType, bool _max);
 // Returns a heading angle in degrees normalized to [0, 360).
 int osdGetHeadingAngle(int angle);
-
-void osdResetWarningFlags(void);
 
 int16_t osdGetPanServoOffset(void);
 

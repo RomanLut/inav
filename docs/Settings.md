@@ -122,6 +122,16 @@ Frequency of the software notch filter to remove mechanical vibrations from the 
 
 ---
 
+### acc_temp_correction
+
+Accelerometer temperature correction factor to compensate for acceleromter drift with changes in acceleromter temperature [cm/s2 per Degs C]. Internally limited to between -50 and 50. Typical setting for MPU6000 acceleromter is around 2.5. Setting to 51 initiates auto calibration which ends after 5 minutes or on first Arm.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 0 | -50 | 51 |
+
+---
+
 ### accgain_x
 
 Calculated value after '6 position avanced calibration'. Uncalibrated value is 4096. See Wiki page.
@@ -422,6 +432,16 @@ Max Antigravity gain. `1` means Antigravity is disabled, `2` means Iterm is allo
 
 ---
 
+### apa_pow
+
+Use airspeed instead of throttle position for PID attenuation if airspeed is available on fixedwing. Scales P/D/FF with airspeed (I-term scaled less aggressively). Gains range from 30% (high speed) to 150% (low speed). Set to 0 to disable and use throttle-based attenuation. Recommended: 120 for aircraft with validated pitot sensor.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 0 | 0 | 200 |
+
+---
+
 ### applied_defaults
 
 Internal (configurator) hint. Should not be changed manually
@@ -449,6 +469,16 @@ Selection of baro hardware. See Wiki Sensor auto detect and hardware failure det
 | Default | Min | Max |
 | --- | --- | --- |
 | AUTO |  |  |
+
+---
+
+### baro_temp_correction
+
+Baro temperature correction factor to compensate for Baro altitude drift with changes in Baro temperature [cm/Degs C]. Internally limited to between -50 and 50. Typical setting for BMP280 Baro is around 20. Setting to 51 initiates auto calibration which ends after 5 minutes or on first Arm.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 0 | -50 | 51 |
 
 ---
 
@@ -522,6 +552,16 @@ Allows disabling PWM mode for beeper on some targets. Switch from ON to OFF if t
 
 ---
 
+### blackbox_arm_control
+
+Determines behaviour of logging in relation to Arm state. For settings from 0 to 60 logging will start on Arm with the setting determining how long logging will continue after disarm in seconds, i.e. set to 0 to stop logging at disarm or 10 to stop logging 10s after disarm. Set to -1 to start logging from boot up until power off (Use with caution - mainly for debugging and best used with BLACKBOX mode).
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 0 | -1 | 60 |
+
+---
+
 ### blackbox_device
 
 Selection of where to write blackbox data
@@ -549,16 +589,6 @@ Blackbox logging rate numerator. Use num/denom settings to decide if a frame sho
 | Default | Min | Max |
 | --- | --- | --- |
 | 1 | 1 | 65535 |
-
----
-
-### controlrate_profile
-
-Control rate profile to switch to when the battery profile is selected, 0 to disable and keep the currently selected control rate profile
-
-| Default | Min | Max |
-| --- | --- | --- |
-| 0 | 0 | 3 |
 
 ---
 
@@ -604,7 +634,7 @@ This sets the output voltage to current scaling for the current sensor in 0.1 mV
 
 ### current_meter_type
 
-ADC , VIRTUAL, NONE. The virtual current sensor, once calibrated, estimates the current value from throttle position.
+ADC, VIRTUAL, FAKE, ESC, SMARTPORT, NONE. The virtual current sensor, once calibrated, estimates the current value from throttle position.
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -674,7 +704,7 @@ Defines debug values exposed in debug variables (developer / debugging setting)
 
 ### disarm_always
 
-Disarms the motors independently of throttle value. Setting to OFF reverts to the old behaviour of disarming only when the throttle is low.
+When you switch to Disarm, do so regardless of throttle position. If this Setting is `OFF`. It will only disarm only when the throttle is low. This is similar to the previous `disarm_kill_switch` option. Default setting is the same as the old default behaviour.
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -842,6 +872,16 @@ Q factor for dynamic notches
 
 ---
 
+### enable_broken_o4_workaround
+
+DJI O4 release firmware has a broken MSP DisplayPort implementation. This enables a workaround to restore ARM detection.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| OFF | OFF | ON |
+
+---
+
 ### esc_sensor_listen_only
 
 Enable when BLHeli32 Auto Telemetry function is used. Disable in every other case
@@ -908,7 +948,7 @@ EzTune filter cutoff frequency
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 110 | 10 | 300 |
+| 110 | 20 | 300 |
 
 ---
 
@@ -1178,7 +1218,7 @@ The target percentage of maximum mixer output used for determining the rates in 
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 80 | 50 | 100 |
+| 90 | 50 | 100 |
 
 ---
 
@@ -1324,7 +1364,7 @@ Defines error rate (in percents of max rate) when Iterm Lock is engaged when sti
 
 ### fw_iterm_lock_rate_threshold
 
-Defines rate percentage when full P I and D attenuation should happen. 100 disables Iterm Lock for P and D term
+Defines the steepness of the attenuation curve. Higher values result in flatter attenuation. Lower values force full attenuation with lower stick deflection
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -1334,7 +1374,7 @@ Defines rate percentage when full P I and D attenuation should happen. 100 disab
 
 ### fw_iterm_lock_time_max_ms
 
-Defines max time in milliseconds for how long ITerm Lock will shut down Iterm after sticks are release
+Defines max time in milliseconds for how long ITerm Lock will depress Iterm after sticks are release
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -1438,7 +1478,7 @@ TPA smoothing and delay time constant to reflect non-instant speed/throttle resp
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 1500 | 0 | 5000 |
+| 2000 | 0 | 5000 |
 
 ---
 
@@ -1469,6 +1509,76 @@ Yaw Iterm is frozen when bank angle is above this threshold [degrees]. This solv
 | Default | Min | Max |
 | --- | --- | --- |
 | 0 | 0 | 90 |
+
+---
+
+### geozone_avoid_altitude_range
+
+Altitude range in which an attempt is made to avoid a geozone upwards
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 5000 | 0 | 1000000 |
+
+---
+
+### geozone_detection_distance
+
+Distance from which a geozone is detected
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 50000 | 0 | 1000000 |
+
+---
+
+### geozone_mr_stop_distance
+
+Distance in which multirotors stops before the border
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 15000 | 0 | 100000 |
+
+---
+
+### geozone_no_way_home_action
+
+Action if RTH with active geozones is unable to calculate a course to home
+
+| Default | Min | Max |
+| --- | --- | --- |
+| RTH |  |  |
+
+---
+
+### geozone_safe_altitude_distance
+
+Vertical distance that must be maintained to the upper and lower limits of the zone.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 1000 | 0 | 10000 |
+
+---
+
+### geozone_safehome_as_inclusive
+
+Treat nearest safehome as inclusive geozone
+
+| Default | Min | Max |
+| --- | --- | --- |
+| OFF | OFF | ON |
+
+---
+
+### geozone_safehome_zone_action
+
+Fence action for safehome zone
+
+| Default | Min | Max |
+| --- | --- | --- |
+| NONE |  |  |
 
 ---
 
@@ -1624,11 +1734,11 @@ Which SBAS mode to be used
 
 ### gps_ublox_nav_hz
 
-Navigation update rate for UBLOX receivers. Some receivers may limit the maximum number of satellites tracked when set to a higher rate or even stop sending navigation updates if the value is too high. Some M10 devices can do up to 25Hz. 10 is a safe value for M8 and newer.
+Navigation update rate for UBLOX receivers. M9 modules limit satellite tracking to 16 satellites at 10Hz or higher, but use 32 satellites below 10Hz for better accuracy. M10 modules work well at 8Hz with 3 constellations. Some M10 devices with high-performance clock can do up to 25Hz with 4 constellations. 8Hz is a safe, accurate default for M8/M9/M10.
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 10 | 5 | 200 |
+| 8 | 5 | 200 |
 
 ---
 
@@ -1638,7 +1748,7 @@ Enable use of Beidou satellites. This is at the expense of other regional conste
 
 | Default | Min | Max |
 | --- | --- | --- |
-| OFF | OFF | ON |
+| ON | OFF | ON |
 
 ---
 
@@ -1648,7 +1758,7 @@ Enable use of Galileo satellites. This is at the expense of other regional const
 
 | Default | Min | Max |
 | --- | --- | --- |
-| OFF | OFF | ON |
+| ON | OFF | ON |
 
 ---
 
@@ -2002,6 +2112,16 @@ Uncertainty value for barometric sensor [cm]
 
 ---
 
+### inav_default_alt_sensor
+
+Sets the default altitude sensor to use. Settings GPS and BARO always use both sensors unless there is an altitude error between the sensors that exceeds a set limit. In this case only the selected sensor will be used while the altitude error limit is exceeded. GPS error limit = 2 * inav_max_eph_epv. BARO error limit = 4 * inav_baro_epv. Settings GPS_ONLY and BARO_ONLY will use only the selected sensor even if the other sensor is working. The other sensor will only be used as a backup if the selected sensor is no longer available to use.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| GPS |  |  |
+
+---
+
 ### inav_gravity_cal_tolerance
 
 Unarmed gravity calibration tolerance level. Won't finish the calibration until estimated gravity error falls below this value.
@@ -2122,13 +2242,23 @@ Weight of barometer measurements in estimated altitude and climb rate. Setting i
 
 ---
 
+### inav_w_z_baro_v
+
+Weight of barometer climb rate measurements in estimated climb rate. Setting is used on both airplanes and multirotors.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 0.35 | 0 | 10 |
+
+---
+
 ### inav_w_z_gps_p
 
 Weight of GPS altitude measurements in estimated altitude. Setting is used on both airplanes and multirotors.
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 0.2 | 0 | 10 |
+| 0.35 | 0 | 10 |
 
 ---
 
@@ -2138,7 +2268,7 @@ Weight of GPS climb rate measurements in estimated climb rate. Setting is used o
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 0.1 | 0 | 10 |
+| 0.35 | 0 | 10 |
 
 ---
 
@@ -2474,7 +2604,7 @@ Servo travel multiplier for the PITCH axis in `MANUAL` flight mode [0-100]%
 
 ### manual_rc_expo
 
-Exposition value used for the PITCH/ROLL axes by the `MANUAL` flight mode [0-100]
+Exponential value used for the PITCH/ROLL axes by the `MANUAL` flight mode [0-100]
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -2484,7 +2614,7 @@ Exposition value used for the PITCH/ROLL axes by the `MANUAL` flight mode [0-100
 
 ### manual_rc_yaw_expo
 
-Exposition value used for the YAW axis by the `MANUAL` flight mode [0-100]
+Exponential value used for the YAW axis by the `MANUAL` flight mode [0-100]
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -2509,6 +2639,16 @@ Servo travel multiplier for the YAW axis in `MANUAL` flight mode [0-100]%
 | Default | Min | Max |
 | --- | --- | --- |
 | 100 | 0 | 100 |
+
+---
+
+### mavlink_autopilot_type
+
+Autopilot type to advertise for MAVLink telemetry
+
+| Default | Min | Max |
+| --- | --- | --- |
+| GENERIC |  |  |
 
 ---
 
@@ -2552,6 +2692,16 @@ Rate of the extra3 message for MAVLink telemetry
 
 ---
 
+### mavlink_min_txbuffer
+
+Minimum percent of TX buffer space free, before attempting to transmit telemetry. Requuires RADIO_STATUS messages to be processed. 0 = always transmits.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 33 | 0 | 100 |
+
+---
+
 ### mavlink_pos_rate
 
 Rate of the position message for MAVLink telemetry
@@ -2562,6 +2712,16 @@ Rate of the position message for MAVLink telemetry
 
 ---
 
+### mavlink_radio_type
+
+Mavlink radio type. Affects how RSSI and LQ are reported on OSD.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| GENERIC |  |  |
+
+---
+
 ### mavlink_rc_chan_rate
 
 Rate of the RC channels message for MAVLink telemetry
@@ -2569,6 +2729,16 @@ Rate of the RC channels message for MAVLink telemetry
 | Default | Min | Max |
 | --- | --- | --- |
 | 1 | 0 | 255 |
+
+---
+
+### mavlink_sysid
+
+MAVLink System ID
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 1 | 1 | 255 |
 
 ---
 
@@ -2822,9 +2992,9 @@ If set to on, This mixer_profile will try to switch to another mixer_profile whe
 
 ---
 
-### mixer_pid_profile_linking
+### mixer_control_profile_linking
 
-If enabled, pid profile_index will follow mixer_profile index. Set to OFF(default) if you want to handle PID profile by your self. Recommend to set to ON on all mixer_profiles to let the mixer_profile handle the PID profile switching on a VTOL or mixed platform type setup.
+If enabled, control_profile_index will follow mixer_profile index. Set to OFF(default) if you want to handle control_profile by your self. Recommend to set to ON on all mixer_profiles to let the mixer_profile handle the control_profile switching on a VTOL or mixed platform type setup.
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -2908,17 +3078,17 @@ If enabled, motor will stop when throttle is low on this mixer_profile
 
 | Default | Min | Max |
 | --- | --- | --- |
-| OFF | OFF | ON |
+| ON | OFF | ON |
 
 ---
 
 ### msp_override_channels
 
-Mask of RX channels that may be overridden by MSP `SET_RAW_RC`. Note that this requires custom firmware with `USE_RX_MSP` and `USE_MSP_RC_OVERRIDE` compile options and the `MSP RC Override` flight mode.
+Mask of RX channels that may be overridden by MSP `SET_RAW_RC`. Note that this requires the `MSP RC Override` flight mode.
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 0 | 0 | 65535 |
+| 0 | 0 | 4294967295 |
 
 ---
 
@@ -3008,7 +3178,17 @@ Adjusts the deceleration response of fixed wing altitude control as the target a
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 20 | 5 | 100 |
+| 40 | 5 | 100 |
+
+---
+
+### nav_fw_alt_use_position
+
+Use position for fixed wing altitude control rather than velocity (default method).
+
+| Default | Min | Max |
+| --- | --- | --- |
+| OFF | OFF | ON |
 
 ---
 
@@ -3314,7 +3494,7 @@ Launch throttle - throttle to be set during launch sequence (pwm units)
 
 ### nav_fw_launch_timeout
 
-Maximum time for launch sequence to be executed. After this time LAUNCH mode will be turned off and regular flight mode will take over (ms)
+Maximum time for launch sequence to continue after throwing. After this time LAUNCH mode will end and regular flight mode will take over (ms)
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -3492,6 +3672,16 @@ D gain of altitude PID controller (Fixedwing)
 
 ---
 
+### nav_fw_pos_z_ff
+
+FF gain of altitude PID controller. Not used if nav_fw_alt_use_position is set ON (Fixedwing)
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 30 | 0 | 255 |
+
+---
+
 ### nav_fw_pos_z_i
 
 I gain of altitude PID controller (Fixedwing)
@@ -3508,7 +3698,7 @@ P gain of altitude PID controller (Fixedwing)
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 40 | 0 | 255 |
+| 30 | 0 | 255 |
 
 ---
 
@@ -4322,6 +4512,16 @@ Ignore adsb planes above, limit, 0 disabled (meters)
 
 ---
 
+### osd_adsb_warning_style
+
+ADSB warning element style, how rich information on scree will be, Possible values are `COMPACT` and `EXTENDED`
+
+| Default | Min | Max |
+| --- | --- | --- |
+| COMPACT |  |  |
+
+---
+
 ### osd_ahi_bordered
 
 Shows a border/corners around the AHI region (pixel OSD only)
@@ -4539,6 +4739,26 @@ Value above which the OSD current consumption element will start blinking. Measu
 | Default | Min | Max |
 | --- | --- | --- |
 | 0 | 0 | 255 |
+
+---
+
+### osd_decimals_altitude
+
+Number of decimals for the altitude displayed in the OSD [3-5].
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 3 | 3 | 5 |
+
+---
+
+### osd_decimals_distance
+
+Number of decimals for distance displayed in the OSD [3-5]. This includes distance from home, total distance, and distance remaining.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 3 | 3 | 5 |
 
 ---
 
@@ -4908,7 +5128,7 @@ Number of digits used for mAh precision. Currently used by mAh Used and Battery 
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 4 | 4 | 6 |
+| 4 | 3 | 6 |
 
 ---
 
@@ -4972,9 +5192,9 @@ Degrees either side of the pan servo centre; where it is assumed camera is wante
 
 ---
 
-### osd_pan_servo_pwm2centideg
+### osd_pan_servo_range_decadegrees
 
-Centidegrees of pan servo rotation us PWM signal. A servo with 180 degrees of rotation from 1000 to 2000 us PWM typically needs `18` for this setting. Change sign to inverse direction.
+Decadegrees of pan servo rotation. A servo with 180 degrees of rotation typically needs `18` for this setting. Using a negative value will reverse the direction.
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -5118,7 +5338,7 @@ Value below which Crossfire SNR Alarm pops-up. (dB)
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 4 | -20 | 10 |
+| 4 | -20 | 30 |
 
 ---
 
@@ -5314,7 +5534,7 @@ Use custom pilot logo with/instead of the INAV logo. The pilot logo must be char
 
 ### osd_video_system
 
-Video system used. Possible values are `AUTO`, `PAL`, `NTSC`, `HDZERO`, 'DJIWTF', 'AVATAR' and `BF43COMPAT`
+Video system used. Possible values are `AUTO`, `PAL`, `NTSC`, `HDZERO`, 'DJIWTF', 'AVATAR', `BF43COMPAT`, `BFHDCOMPAT` and `DJI_NATIVE`
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -5404,7 +5624,7 @@ Defines rotation rate on PITCH axis that UAV will try to archive on max. stick d
 
 ### pitot_hardware
 
-Selection of pitot hardware.
+Selection of pitot hardware. VIRTUAL only works if a GPS is enabled.
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -5414,11 +5634,11 @@ Selection of pitot hardware.
 
 ### pitot_lpf_milli_hz
 
-Pitot tube lowpass filter cutoff frequency. Lower cutoff frequencies result in smoother response at expense of command control delay
+Pitot tube lowpass filter cutoff frequency in milli Hz(0.001hz). Set as 0 to disable LPF Lower cutoff frequencies result in smoother response at expense of command control delay
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 350 | 0 | 10000 |
+| 3000 | 0 | 50000 |
 
 ---
 
@@ -5564,7 +5784,7 @@ The end  stick weight for Rate Dynamics
 
 ### rc_expo
 
-Exposition value used for the PITCH/ROLL axes by all the stabilized flights modes (all but `MANUAL`)
+Exponential value used for the PITCH/ROLL axes by all the stabilized flights modes (all but `MANUAL`)
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -5604,21 +5824,11 @@ The RC filter smoothing factor. The higher the value, the more smoothing but als
 
 ### rc_yaw_expo
 
-Exposition value used for the YAW axis by all the stabilized flights modes (all but `MANUAL`)
+Exponential value used for the YAW axis by all the stabilized flights modes (all but `MANUAL`)
 
 | Default | Min | Max |
 | --- | --- | --- |
 | 20 | 0 | 100 |
-
----
-
-### reboot_character
-
-Special character used to trigger reboot
-
-| Default | Min | Max |
-| --- | --- | --- |
-| 82 | 48 | 126 |
 
 ---
 
@@ -6072,6 +6282,16 @@ General switch of the statistics recording feature (a.k.a. odometer)
 
 ---
 
+### stats_flight_count
+
+Total number of flights. The value is updated on every disarm when "stats" are enabled.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 0 |  | 65535 |
+
+---
+
 ### stats_total_dist
 
 Total flight distance [in meters]. The value is updated on every disarm when "stats" are enabled.
@@ -6164,7 +6384,7 @@ Weight used for the throttle compensation based on battery voltage. See the [bat
 
 ### thr_expo
 
-Throttle exposition value
+Throttle exponential value
 
 | Default | Min | Max |
 | --- | --- | --- |
@@ -6232,13 +6452,53 @@ Throttle PID attenuation also reduces influence on YAW for multi-rotor, Should b
 
 ---
 
-### tpa_rate
+### tpa_pitch_compensation
 
-Throttle PID attenuation reduces influence of PDFF on ROLL and PITCH of multi-rotor, PIDFF on ROLL,PITCH,YAW OF fixed_wing as throttle increases. For every 1% throttle after the TPA breakpoint, P is reduced by the TPA rate.
+Pitch angle based throttle compensation for fixed wing. Positive values will increase throttle when pitching up, and decrease throttle when pitching down.
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 0 | 0 | 100 |
+| 8 | 0 | 20 |
+
+---
+
+### tpa_rate
+
+Throttle based PID attenuation(TPA) reduces influence of PDFF on ROLL and PITCH of multi-rotor, PIDFF on ROLL,PITCH,YAW OF fixed_wing as throttle increases. On multirotor, For every 1% throttle after the TPA breakpoint, P is reduced by the TPA rate. for fixedwing modifies PIDFF. See **PID Attenuation and scaling** Wiki for full details.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 0 | 0 | 200 |
+
+---
+
+### transition_pid_mmix_multiplier_pitch
+
+pitch axis pid multiplier applied to motor mixer only on mixer trasition mode, 1000(default) is 1.0x, -1000 is 1.0x on opposite
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 1000 | -5000 | 5000 |
+
+---
+
+### transition_pid_mmix_multiplier_roll
+
+roll axis pid multiplier applied to motor mixer only on mixer trasition mode, 1000(default) is 1.0x, -1000 is 1.0x on opposite
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 1000 | -5000 | 5000 |
+
+---
+
+### transition_pid_mmix_multiplier_yaw
+
+yaw axis pid multiplier applied to motor mixer only on mixer trasition mode, 1000(default) is 1.0x, -1000 is 1.0x on opposite
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 1000 | -5000 | 5000 |
 
 ---
 
@@ -6282,6 +6542,16 @@ Time zone offset from UTC, in minutes. This is applied to the GPS time for loggi
 
 ---
 
+### use_control_profile
+
+Control profile to switch to when the battery profile is selected, 0 to disable and keep the currently selected control profile
+
+| Default | Min | Max |
+| --- | --- | --- |
+| 0 | 0 | 3 |
+
+---
+
 ### vbat_adc_channel
 
 ADC channel to use for battery voltage sensor. Defaults to board VBAT input (if available). 0 = disabled
@@ -6314,7 +6584,7 @@ Maximum voltage per cell in 0.01V units, default is 4.20V
 
 ### vbat_meter_type
 
-Vbat voltage source. Possible values: `NONE`, `ADC`, `ESC`. `ESC` required ESC telemetry enebled and running
+Vbat voltage source. Possible values: `NONE`, `ADC`, `SMARTPORT`, `ESC`. `ESC` requires ESC telemetry enabled and running. `SMARTPORT` requires SmartPort Master enabled and running.
 
 | Default | Min | Max |
 | --- | --- | --- |

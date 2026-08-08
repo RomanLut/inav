@@ -549,14 +549,14 @@ static void gpsDecodeProtocolVersion(const char *proto, size_t bufferLength)
     if (bufferLength > 13 && (!strncmp(proto, "PROTVER=", 8) || !strncmp(proto, "PROTVER ", 8))) {
         proto+=8;
 
-        float ver = atof(proto);
+        float ver = fastA2F(proto);
 
         gpsState.swVersionMajor = (uint8_t)ver;
         gpsState.swVersionMinor = (uint8_t)((ver - gpsState.swVersionMajor) * 100.0f);
     }
 }
 
-static uint32_t gpsDecodeHardwareVersion(const char * szBuf, unsigned nBufSize)
+static uint8_t gpsDecodeHardwareVersion(const char * szBuf, unsigned nBufSize)
 {
     // ublox_5   hwVersion 00040005
     if (strncmp(szBuf, "00040005", nBufSize) == 0) {
@@ -635,7 +635,7 @@ static bool gpsParseFrameUBLOX(void)
             gpsSolDRV.time.hours = _buffer.timeutc.hour;
             gpsSolDRV.time.minutes = _buffer.timeutc.min;
             gpsSolDRV.time.seconds = _buffer.timeutc.sec;
-            gpsSolDRV.time.millis = _buffer.timeutc.nano / (1000*1000);
+            gpsSolDRV.time.millis = (uint16_t)(MAX(0, _buffer.timeutc.nano) / (1000*1000));
 
             gpsSolDRV.flags.validTime = true;
         } else {
@@ -674,7 +674,7 @@ static bool gpsParseFrameUBLOX(void)
             gpsSolDRV.time.hours = _buffer.pvt.hour;
             gpsSolDRV.time.minutes = _buffer.pvt.min;
             gpsSolDRV.time.seconds = _buffer.pvt.sec;
-            gpsSolDRV.time.millis = _buffer.pvt.nano / (1000*1000);
+            gpsSolDRV.time.millis = (uint16_t)(MAX(0, _buffer.pvt.nano) / (1000*1000));
 
             gpsSolDRV.flags.validTime = true;
         } else {
@@ -746,8 +746,8 @@ static bool gpsParseFrameUBLOX(void)
                 ubloxNavSat2NavSig(&_buffer.svinfo.channel[i], &satelites[i]);
             }
             for(int i =_buffer.svinfo.numSvs; i < UBLOX_MAX_SIGNALS; ++i) {
-                satelites->gnssId = 0xFF;
-                satelites->svId = 0xFF;
+                satelites[i].gnssId = 0xFF;
+                satelites[i].svId = 0xFF;
             }
         }
         break;
@@ -1231,11 +1231,9 @@ STATIC_PROTOTHREAD(gpsProtocolStateThread)
                 if (gpsState.hwVersion == UBX_HW_VERSION_UNKNOWN)
                 {
                     pollVersion();
-                    ptWaitTimeout((_ack_state == UBX_ACK_GOT_ACK || _ack_state == UBX_ACK_GOT_NAK), GPS_CFG_CMD_TIMEOUT_MS);
                 }
 
                 pollGnssCapabilities();
-                ptWaitTimeout((_ack_state == UBX_ACK_GOT_ACK || _ack_state == UBX_ACK_GOT_NAK), GPS_CFG_CMD_TIMEOUT_MS);
             }
         }
     }

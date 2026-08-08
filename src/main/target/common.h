@@ -95,6 +95,7 @@
 // Allow default airspeed sensors
 #define USE_PITOT
 #define USE_PITOT_MS4525
+#define USE_PITOT_MS5525
 #define USE_PITOT_MSP
 #define USE_PITOT_DLVR
 
@@ -155,7 +156,7 @@
 #define USE_TELEMETRY_JETIEXBUS
 // These are rather exotic serial protocols
 #define USE_RX_MSP
-//#define USE_MSP_RC_OVERRIDE
+#define USE_MSP_RC_OVERRIDE
 #define USE_SERIALRX_CRSF
 #define USE_SERIAL_PASSTHROUGH
 #define NAV_MAX_WAYPOINTS       120
@@ -180,6 +181,8 @@
 #define USE_SIMULATOR
 #define USE_PITOT_VIRTUAL
 #define USE_FAKE_BATT_SENSOR
+#define USE_RANGEFINDER_FAKE
+#define USE_RX_SIM
 
 #define USE_CMS_FONT_PREVIEW
 
@@ -209,6 +212,11 @@
 #define USE_34CHANNELS
 #define MAX_MIXER_PROFILE_COUNT 2
 #define USE_SMARTPORT_MASTER
+#ifdef USE_GPS
+#define USE_GEOZONE
+#define MAX_GEOZONES_IN_CONFIG 63
+#define MAX_VERTICES_IN_CONFIG 126
+#endif
 #elif !defined(STM32F7)
 #define MAX_MIXER_PROFILE_COUNT 1
 #endif
@@ -221,3 +229,4 @@
 
 #define USE_EZ_TUNE
 #define USE_ADAPTIVE_FILTER
+

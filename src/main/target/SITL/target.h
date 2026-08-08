@@ -67,8 +67,6 @@
 #define USE_FAKE_BARO
 #define USE_FAKE_MAG
 #define USE_GPS_FAKE
-#define USE_RANGEFINDER_FAKE
-#define USE_RX_SIM
 #undef MAX_MIXER_PROFILE_COUNT
 #define MAX_MIXER_PROFILE_COUNT 2
 
@@ -80,6 +78,9 @@
 #define USE_HEADTRACKER_MSP
 
 #undef USE_DASHBOARD
+#define USE_GEOZONE
+#define MAX_GEOZONES_IN_CONFIG 63
+#define MAX_VERTICES_IN_CONFIG 126
 
 #undef USE_GYRO_KALMAN // Strange behaviour under x86/x64 ?!?
 #undef USE_VCP
