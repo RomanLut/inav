@@ -149,7 +149,9 @@ static void pwmOutConfigTimer(pwmOutputPort_t * p, TCH_t * tch, uint32_t hz, uin
     timerEnable(p->tch);
 
     p->ccr = timerCCR(p->tch);
+#ifndef PWM_OUTPUT_SAFE_STARTUP
     *p->ccr = 0;
+#endif
 }
 
 static pwmOutputPort_t *pwmOutAllocatePort(void)

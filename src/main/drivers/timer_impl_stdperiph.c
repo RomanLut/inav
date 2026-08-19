@@ -219,7 +219,12 @@ void impl_timerPWMConfigChannel(TCH_t * tch, uint16_t value)
         TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
         TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
         TIM_OCInitStructure.TIM_OCPolarity = inverted ? TIM_OCPolarity_Low : TIM_OCPolarity_High;
+#ifdef PWM_OUTPUT_SAFE_STARTUP
+        // Keep the physical output inactive while an advanced timer enables its main output.
+        TIM_OCInitStructure.TIM_OCIdleState = inverted ? TIM_OCIdleState_Set : TIM_OCIdleState_Reset;
+#else
         TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
+#endif
     }
 
     switch (tch->timHw->channelIndex) {
